@@ -58,6 +58,9 @@ app.post('/register', async (req,res)=> {
     let last_name = req.body.last_name;
     let email = req.body.email;
     let birth_year = req.body.birth_year;
+    
+    // let image = req.body.image;
+    // let face_encoding = PythonScripts.face_encodings(image);
 
     try {
         let payload = {username, first_name, last_name, email, password, birth_year};
@@ -101,12 +104,31 @@ app.get('/getEventDetail', async (req,res)=> {
 });
 
 app.post('/registerForEvent', async (req,res)=> {
-
+    
 });
 
-app.post('/getProfile', async (req,res)=> {
+app.get('/getProfile', async (req,res)=> {
+    let username = req.body.username;
 
+    try {
+        CheckRequiredFields({username});        
+        let userData = await dbusers.getUser(username);
+        Respond.Success(userData, res);        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
 });
+
+/**
+ * Takes in an image, and connects users in the image
+ */
+app.post('/connect', async (req,res)=>{
+    // let image = req.body.image;
+    // let connections = PythonScripts.connections(image);
+});
+
+
 
 app.listen(config.port,()=>{
     console.log(`Server started on port ${config.port}`);

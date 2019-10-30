@@ -30,6 +30,25 @@ class DBUsers {
         return users;        
     }
 
+    async getUser(username)
+    {
+        try {
+            var user = await this.collection().doc(username).get();
+            if(user.exists)
+            {
+                let userData = user.data()
+                userData.password = undefined;
+                return userData;
+            }
+            else
+            {
+                throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+            }
+        } catch (error) {
+            throw error;
+        }   
+    }
+
     /**
      * Registers a new user, assuming username is not already taken
      * @throws

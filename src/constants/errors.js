@@ -36,6 +36,11 @@ module.exports = {
             statusText : "Error",
             message : "Failed to load users"        
         },
+        ERROR_USER_DOESNT_EXIST : {            
+            status: "ERROR_USER_DOESNT_EXIST",
+            statusText : "Error",
+            message : "The user you are looking for does not exist"        
+        }
     },    
     INVALID_REQUEST_ERROR : {
         status: "INVALID_REQUEST_ERROR",
