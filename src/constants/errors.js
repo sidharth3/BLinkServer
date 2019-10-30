@@ -9,6 +9,11 @@ module.exports = {
         statusText : "Error",
         message : "This user does not exist"        
     },
+    ERROR_USER_RETRIEVAL_FAILED : {
+        status: "ERROR_USER_RETRIEVAL_FAILED",
+        statusText : "Error",
+        message : "Failed to load users"        
+    },
     INTERNAL_SERVER_ERROR : {
         status: "INTERNAL_SERVER_ERROR",
         statusText : "Internal Server Error",

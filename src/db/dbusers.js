@@ -14,9 +14,18 @@ class DBUsers {
     /**
      * Returns a list of all users
      */
-    async getUsers()
-    {
-
+    async getUsers(){        
+        var users = [];
+        try {
+            var snapshot = await this.collection().get();
+            snapshot.forEach((user)=> {
+                users.push(user.data());
+            })    
+        } catch (error) {
+            console.log(Errors.ERROR_USER_RETRIEVAL_FAILED);
+        }
+    
+        return users;        
     }
 
     async creatUser()
