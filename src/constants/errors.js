@@ -14,6 +14,16 @@ module.exports = {
         statusText : "Error",
         message : "This user does not exist"        
     },
+    ERROR_USERNAME_TAKEN : {
+        status: "ERROR_USERNAME_TAKEN",
+        statusText : "Error",
+        message : "This username is already taken"        
+    },
+    ERROR_REGISTRATION_FAILED : {
+        status: "ERROR_REGISTRATION_FAILED",
+        statusText : "Error",
+        message : "Registration Failed"        
+    },
     ERROR_USER_RETRIEVAL_FAILED : {
         status: "ERROR_USER_RETRIEVAL_FAILED",
         statusText : "Error",

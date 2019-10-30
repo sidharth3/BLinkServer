@@ -54,6 +54,43 @@ app.post('/login', async (req,res)=>{
 });
 
 app.post('/register', async (req,res)=> {
+    let username = req.body.username;
+    let password = req.body.password;
+    let first_name = req.body.first_name;
+    let last_name = req.body.last_name;
+    let email = req.body.email;
+    let birth_year = req.body.birth_year;
+
+    try {
+        let payload = {username, first_name, last_name, email, password, birth_year};
+        CheckRequiredFields(payload);        
+
+        let success = await dbusers.creatUser(payload);
+        if (success) {
+            Respond.Success(Responses.REGISTER_SUCCESS, res);
+        }
+        else {
+            throw Errors.ERROR_REGISTRATION_FAILED;
+        }
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+app.post('/getEvents', async (req,res)=> {
+
+});
+
+app.post('/getEventDetail', async (req,res)=> {
+
+});
+
+app.post('/registerForEvent', async (req,res)=> {
+
+});
+
+app.post('/getProfile', async (req,res)=> {
 
 });
 

@@ -30,9 +30,36 @@ class DBUsers {
         return users;        
     }
 
-    async creatUser(username, first_name, last_name, email, password)
+    /**
+     * Registers a new user, assuming username is not already taken
+     * @throws
+     * @returns {Promise<boolean>} if successfully registered
+     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     */
+    async creatUser(payload)
     {
-        let hashedPassword = await this.hashedpassword(password);
+        let userDoc = this.collection().doc(payload.username);
+        let user = await userDoc.get();
+        if(user.exists)
+        {
+            throw Errors.ERROR_USERNAME_TAKEN;
+        }
+        else
+        {
+            let hashedPassword = await this.hashedpassword(payload.password);
+            this.collection().doc(payload.username);
+            userDoc.set({
+                username : payload.username,
+                first_name: payload.first_name,
+                last_name: payload.last_name,
+                email: payload.email,
+                password: hashedPassword,
+                birth_year: payload.birth_year
+            });
+
+            return true;
+        }
+
     }
 
     /**
