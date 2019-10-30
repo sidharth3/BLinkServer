@@ -21,7 +21,7 @@ module.exports = {
             status: "ERROR_REGISTRATION_FAILED",
             statusText : "Error",
             message : "Registration Failed"        
-        },
+        }
     },
     EVENTS: {
         ERROR_EVENTS_RETRIEVAL_FAILED : {
@@ -36,7 +36,19 @@ module.exports = {
             statusText : "Error",
             message : "Failed to load users"        
         },
+        ERROR_USER_DOESNT_EXIST : {            
+            status: "ERROR_USER_DOESNT_EXIST",
+            statusText : "Error",
+            message : "The user you are looking for does not exist"        
+        }
     },    
+    PYTHON : {
+        ERROR_FACE_ENCODING_FAILED : {            
+            status: "ERROR_FACE_ENCODING_FAILED",
+            statusText : "Error",
+            message : "Face encoding failed"        
+        }
+    },
     INVALID_REQUEST_ERROR : {
         status: "INVALID_REQUEST_ERROR",
         statusText : "Error",

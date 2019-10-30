@@ -30,11 +30,30 @@ class DBUsers {
         return users;        
     }
 
+    async getUser(username)
+    {
+        try {
+            var user = await this.collection().doc(username).get();
+            if(user.exists)
+            {
+                let userData = user.data()
+                userData.password = undefined;
+                return userData;
+            }
+            else
+            {
+                throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+            }
+        } catch (error) {
+            throw error;
+        }   
+    }
+
     /**
      * Registers a new user, assuming username is not already taken
      * @throws
      * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     * @param {{username, first_name, last_name, email, password, birth_year, face_encodings_strings}} payload 
      */
     async createUser(payload)
     {
@@ -54,7 +73,8 @@ class DBUsers {
                 last_name: payload.last_name,
                 email: payload.email,
                 password: hashedPassword,
-                birth_year: payload.birth_year
+                birth_year: payload.birth_year,
+                face_encodings: payload.face_encodings_strings
             });
 
             return true;
