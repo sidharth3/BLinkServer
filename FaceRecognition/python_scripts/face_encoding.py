@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
 '''
-usage: python filename.py image_path user_name
+usage: python filename.py image_path
 output: face_encoding array
-
-
 '''
 
 import face_recognition
 import json
 import numpy as np
 from PIL import Image, ImageDraw
-from IPython.display import display
+#from IPython.display import display
 import argparse 
-
 
 def argParser(): # arg parser
 	parser = argparse.ArgumentParser(description ="Process image path")
 	parser.add_argument('image_path', type=str, help='Input path of the image')
-	# parser.add_argument('user_name', type=str, help='Input name of user')
 
 	return parser.parse_args()
 

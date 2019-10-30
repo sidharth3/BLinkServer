@@ -1,0 +1,58 @@
+{ 
+users: [
+	{
+		username : [
+				{
+			username:"",
+			first_name : "",
+			last_name : "",
+			email : "",
+			password : "",
+			birth_year : "",
+			attended_events : []
+				}
+					]
+	}
+		],
+
+events: [
+	{
+		event_id : [
+				{
+				event_id: '',
+				event_name : "",
+				date : "",
+				org_username : "",
+				price : ""
+				}
+					]
+	}
+		],
+
+organisers: [
+	{	
+		org_username: [
+				{
+				org_username:'',
+				username:'',
+				first_name: '',
+                last_name: '',
+                email: '',
+                password: '',
+                organisation_name: '',
+                events_organised: [event_id],
+				}
+					]
+	}
+		],
+
+connections: [
+	{
+		connection_num: [
+				{
+				0 : [userA, userB]
+				}
+						]
+	}
+			],
+}
