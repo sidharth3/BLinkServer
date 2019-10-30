@@ -1,4 +1,9 @@
 module.exports = {
+    INVALID_REQUEST_ERROR : {
+        status: "INVALID_REQUEST_ERROR",
+        statusText : "Error",
+        message : "Requested variables were not provided"        
+    },
     ERROR_WRONG_PASSWORD : {
         status: "ERROR_WRONG_PASSWORD",
         statusText : "Error",

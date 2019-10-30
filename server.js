@@ -24,7 +24,7 @@ const firestore = firebase.firestore();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 
-dbusers.login("mooselliot", "12345").then((loginSuccess)=> console.log(loginSuccess));
+// dbusers.login("mooselliot", "12345").then((loginSuccess)=> console.log(loginSuccess));
 
 app.use(bodyParse.json());
 app.use(bodyParse.urlencoded({extended: false }));
@@ -39,6 +39,8 @@ app.post('/login', async (req,res)=>{
     let password = req.body.password;
 
     try {
+        CheckRequiredFields({username, password});        
+
         let success = await dbusers.login(username, password);
         if (success) {
             Respond.Success(Responses.LOGIN_SUCCESS, res);
@@ -58,5 +60,26 @@ app.post('/register', async (req,res)=> {
 app.listen(config.port,()=>{
     console.log(`Server started on port ${config.port}`);
 });
+
+function CheckRequiredFields(object)
+{
+    let missing_fields = [];
+    for(let key in object)
+    {
+        if(object[key] === undefined || object[key] === null)
+        {            
+            missing_fields.push(key);
+        }
+    }
+
+    if(missing_fields.length != 0)
+    {
+        throw {
+            status: Errors.INVALID_REQUEST_ERROR.status,
+            statusText: Errors.INVALID_REQUEST_ERROR.statusText,
+            message: Errors.INVALID_REQUEST_ERROR.message + `. Missing Fields: ${missing_fields.join(', ')}`
+        };
+    }
+}
 
 
