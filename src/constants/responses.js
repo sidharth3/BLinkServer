@@ -4,4 +4,9 @@ module.exports = {
         statusText : "Success",
         message : "Login Successful"        
     },    
+    REGISTER_SUCCESS : {
+        status: "REGISTER_SUCCESS",
+        statusText : "Success",
+        message : "Register Successful"        
+    },    
 }

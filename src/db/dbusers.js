@@ -1,4 +1,6 @@
 const Errors = require('../constants/errors');
+const bcrypt = require('bcrypt');
+const config = require('../constants/config');
 
 class DBUsers {
     constructor(firestore)
@@ -22,14 +24,41 @@ class DBUsers {
                 users.push(user.data());
             })    
         } catch (error) {
-            console.log(Errors.ERROR_USER_RETRIEVAL_FAILED);
+            console.log(Errors.USERS.ERROR_USER_RETRIEVAL_FAILED);
         }
     
         return users;        
     }
 
-    async creatUser()
+    /**
+     * Registers a new user, assuming username is not already taken
+     * @throws
+     * @returns {Promise<boolean>} if successfully registered
+     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     */
+    async createUser(payload)
     {
+        let userDoc = this.collection().doc(payload.username);
+        let user = await userDoc.get();
+        if(user.exists)
+        {
+            throw Errors.REGISTRATION.ERROR_USERNAME_TAKEN;
+        }
+        else
+        {
+            let hashedPassword = await this.hashedpassword(payload.password);
+            this.collection().doc(payload.username);
+            userDoc.set({
+                username : payload.username,
+                first_name: payload.first_name,
+                last_name: payload.last_name,
+                email: payload.email,
+                password: hashedPassword,
+                birth_year: payload.birth_year
+            });
+
+            return true;
+        }
 
     }
 
@@ -48,22 +77,24 @@ class DBUsers {
             //user exists && verify hashed password
             if(user.exists)
             {
-                let userData = user.data();                
-                if(userData.password == this.hashedpassword(password))
+                let userData = user.data();                                
+                //userData password is hashed, must use bcrypt to compare
+                let validPassword = await bcrypt.compare(password, userData.password);
+                if(validPassword)
                 {
                     return true;
                 }
                 else
                 {
-                    throw Errors.ERROR_WRONG_PASSWORD;
+                    throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
                 }
             }
             else
             {
-                throw Errors.ERROR_USER_DOESNT_EXIST;
+                throw Errors.LOGIN.ERROR_USER_DOESNT_EXIST;
             }
         } catch (error) {            
-            if(error == Errors.ERROR_USER_DOESNT_EXIST || error == Errors.ERROR_WRONG_PASSWORD)
+            if(error == Errors.LOGIN.ERROR_USER_DOESNT_EXIST || error == Errors.LOGIN.ERROR_WRONG_PASSWORD)
             {
                 throw error;
             }
@@ -81,7 +112,16 @@ class DBUsers {
      */
     hashedpassword(password)
     {
-        return password;
+        return new Promise((resolve,reject)=>{
+            bcrypt.hash(password, config.SALT_ROUNDS, (error,hash)=>{
+                if (error)
+                {
+                    reject(error);
+                }
+    
+                resolve(hash);
+            });
+        })
     }
 }
 
