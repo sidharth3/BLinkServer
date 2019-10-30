@@ -27,7 +27,7 @@ getUsers().then((users)=>{
 let colRef_users = firestore.collection('users');
 let users_list = ["sean"];
 for (let i of users_list){
-    docRef_users = colRef_users.doc(i);
+    let docRef_users = colRef_users.doc(i);
     let set_users = docRef_users.set({
         first_name: '',
         last_name: '',
@@ -44,7 +44,7 @@ console.log("users loaded");
 let colRef_events = firestore.collection('events');
 let events_list = ["123"];
 for (let i of events_list){
-    docRef_events = colRef_events.doc(i);
+    let docRef_events = colRef_events.doc(i);
     let set_events = docRef_events.set({
         event_name : '',
         date: '', //in DDMMYY
@@ -60,7 +60,7 @@ console.log("events loaded");
 let colRef_organisers = firestore.collection('organisers');
 let organisers_list = ["ustd"];
 for (let i of organisers_list){
-    docRef_organisers = colRef_organisers.doc(i);
+    let docRef_organisers = colRef_organisers.doc(i);
     let set_organisers = docRef_organisers.set({
         first_name : '',
         last_name :'',
@@ -79,7 +79,7 @@ let connections_num = ["0"];
 let userA_list = ["viet"]
 let userB_list = ["jie lin"]
 for (let i=0; i < connections_num.length; i++){
-    docRef_connections = colRef_connections.doc(connections_num[i]);
+    let docRef_connections = colRef_connections.doc(connections_num[i]);
     let set_connections = docRef_connections.set({
         0 : [userA_list[i],userB_list[i]]
     })
