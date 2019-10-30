@@ -19,12 +19,10 @@ firebase.initializeApp({
 
 const firestore = firebase.firestore();
 
-// const dbinit = new DBInit(firestore);
-// dbinit.initializeDB();
+const dbinit = new DBInit(firestore);
+dbinit.initializeDB();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
-
-dbusers.login("mooselliot", "12345").then((loginSuccess)=> console.log(loginSuccess));
 
 app.use(bodyParse.json());
 app.use(bodyParse.urlencoded({extended: false }));
@@ -47,7 +45,7 @@ app.post('/login', async (req,res)=>{
             throw Errors.ERROR_WRONG_PASSWORD;
         }
     } catch (error) {
-        Respond.Error(error, res);
+        Respond.Error(error, res);n
     }
 });
 
