@@ -19,11 +19,13 @@ const PythonScripts = require('./src/python/pythonscripts');
 const FACE_IMAGE_PATH = './FaceRecognition/images';
 
 const multer = require('multer');
+const fs = require('fs');
+const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, FACE_IMAGE_PATH);
-    },
     filename: (req, file, cb) => {
+    },
         cb(null, `${Date.now()}_${file.originalname}`);
     }
 })
