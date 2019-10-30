@@ -1,4 +1,6 @@
 const Errors = require('../constants/errors');
+const bcrypt = require('bcrypt');
+const config = require('../constants/config');
 
 class DBUsers {
     constructor(firestore)
@@ -28,9 +30,9 @@ class DBUsers {
         return users;        
     }
 
-    async creatUser()
+    async creatUser(username, first_name, last_name, email, password)
     {
-
+        let hashedPassword = await this.hashedpassword(password);
     }
 
     /**
@@ -48,8 +50,10 @@ class DBUsers {
             //user exists && verify hashed password
             if(user.exists)
             {
-                let userData = user.data();                
-                if(userData.password == this.hashedpassword(password))
+                let userData = user.data();                                
+                //userData password is hashed, must use bcrypt to compare
+                let validPassword = await bcrypt.compare(password, userData.password);
+                if(validPassword)
                 {
                     return true;
                 }
@@ -81,7 +85,16 @@ class DBUsers {
      */
     hashedpassword(password)
     {
-        return password;
+        return new Promise((resolve,reject)=>{
+            bcrypt.hash(password, config.SALT_ROUNDS, (error,hash)=>{
+                if (error)
+                {
+                    reject(error);
+                }
+    
+                resolve(hash);
+            });
+        })
     }
 }
 
