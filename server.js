@@ -24,8 +24,8 @@ const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, FACE_IMAGE_PATH);
-    filename: (req, file, cb) => {
     },
+    filename: (req, file, cb) => {
         cb(null, `${Date.now()}_${file.originalname}`);
     }
 })
