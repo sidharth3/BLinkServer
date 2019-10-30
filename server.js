@@ -24,8 +24,6 @@ const firestore = firebase.firestore();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 
-// dbusers.login("mooselliot", "12345").then((loginSuccess)=> console.log(loginSuccess));
-
 app.use(bodyParse.json());
 app.use(bodyParse.urlencoded({extended: false }));
 app.set('json spaces', 2);
@@ -46,7 +44,7 @@ app.post('/login', async (req,res)=>{
             Respond.Success(Responses.LOGIN_SUCCESS, res);
         }
         else {
-            throw Errors.ERROR_WRONG_PASSWORD;
+            throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
         }
     } catch (error) {
         Respond.Error(error, res);
@@ -65,12 +63,12 @@ app.post('/register', async (req,res)=> {
         let payload = {username, first_name, last_name, email, password, birth_year};
         CheckRequiredFields(payload);        
 
-        let success = await dbusers.creatUser(payload);
+        let success = await dbusers.createUser(payload);
         if (success) {
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else {
-            throw Errors.ERROR_REGISTRATION_FAILED;
+            throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
         }
     } catch (error) {
         console.log(error);
@@ -78,12 +76,28 @@ app.post('/register', async (req,res)=> {
     }
 });
 
-app.post('/getEvents', async (req,res)=> {
+app.get('/getEvents', async (req,res)=> {
 
+    try {
+        let events = await dbevents.getEvents();
+        Respond.Success(events, res);        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
 });
 
-app.post('/getEventDetail', async (req,res)=> {
+app.get('/getEventDetail', async (req,res)=> {
+    let event_id = req.body.event_id;
 
+    try {
+        CheckRequiredFields({event_id});        
+        let eventDetail = await dbevents.getEventDetail(event_id);
+        Respond.Success(eventDetail, res);        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
 });
 
 app.post('/registerForEvent', async (req,res)=> {

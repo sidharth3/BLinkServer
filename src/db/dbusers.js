@@ -24,7 +24,7 @@ class DBUsers {
                 users.push(user.data());
             })    
         } catch (error) {
-            console.log(Errors.ERROR_USER_RETRIEVAL_FAILED);
+            console.log(Errors.USERS.ERROR_USER_RETRIEVAL_FAILED);
         }
     
         return users;        
@@ -36,13 +36,13 @@ class DBUsers {
      * @returns {Promise<boolean>} if successfully registered
      * @param {{username, first_name, last_name, email, password, birth_year}} payload 
      */
-    async creatUser(payload)
+    async createUser(payload)
     {
         let userDoc = this.collection().doc(payload.username);
         let user = await userDoc.get();
         if(user.exists)
         {
-            throw Errors.ERROR_USERNAME_TAKEN;
+            throw Errors.REGISTRATION.ERROR_USERNAME_TAKEN;
         }
         else
         {
@@ -86,15 +86,15 @@ class DBUsers {
                 }
                 else
                 {
-                    throw Errors.ERROR_WRONG_PASSWORD;
+                    throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
                 }
             }
             else
             {
-                throw Errors.ERROR_USER_DOESNT_EXIST;
+                throw Errors.LOGIN.ERROR_USER_DOESNT_EXIST;
             }
         } catch (error) {            
-            if(error == Errors.ERROR_USER_DOESNT_EXIST || error == Errors.ERROR_WRONG_PASSWORD)
+            if(error == Errors.LOGIN.ERROR_USER_DOESNT_EXIST || error == Errors.LOGIN.ERROR_WRONG_PASSWORD)
             {
                 throw error;
             }
