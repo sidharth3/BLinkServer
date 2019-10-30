@@ -11,6 +11,9 @@ const DBInit = require('./src/db/dbinit');
 const Respond = require('./src/helpers/Respond');
 const Responses = require('./src/constants/responses');
 const Errors = require('./src/constants/errors');
+const multer = require('multer');
+const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
+
 
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
@@ -52,6 +55,33 @@ app.post('/login', async (req,res)=>{
         Respond.Error(error, res);
     }
 });
+
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './FaceRecognition/images')
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}_${file.originalname}`);
+    }
+})
+
+const upload = multer({storage});
+
+app.post('/registerImage', upload.single('registrationImage'), function (req, res, next) {
+    if(!req.file){
+        return res.status(400).send("No file sent!");
+    }
+
+    getFaceEncoding(req.file.filename)
+        .then((encodings) => {
+            return res.status(200).send(JSON.stringify(encodings));
+        } )
+        .catch((err) => {
+            return res.status(500).send(err);
+        })
+
+  })
 
 app.post('/register', async (req,res)=> {
 
