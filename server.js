@@ -12,6 +12,7 @@ const Respond = require('./src/helpers/Respond');
 const Responses = require('./src/constants/responses');
 const Errors = require('./src/constants/errors');
 const multer = require('multer');
+const fs = require('fs');
 const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
 
 
@@ -73,9 +74,11 @@ app.post('/registerImage', upload.single('registrationImage'), function (req, re
 
     getFaceEncoding(req.file.filename)
         .then((encodings) => {
+            fs.unlinkSync(`./FaceRecognition/images/${req.file.filename}`);
             return res.status(200).send(JSON.stringify(encodings));
-        } )
+        })
         .catch((err) => {
+            console.log(err);
             return res.status(500).send(err);
         })
 
