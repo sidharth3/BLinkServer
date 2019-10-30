@@ -2,7 +2,7 @@ const {PythonShell} = require('python-shell');
 
 const options = {
     mode: 'text',
-    pythonPath: './python_venv/Scripts/python.exe',
+    pythonPath: './python_venv_ubuntu/bin/python3',
     pythonOptions: ['-u'], // get print results in real-time
     scriptPath: './python_scripts',
   };
