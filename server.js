@@ -66,7 +66,7 @@ app.post('/login', async (req,res)=>{
             throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
         }
     } catch (error) {
-        Respond.Error(error, res);n
+        Respond.Error(error, res);
     }
 });
 
