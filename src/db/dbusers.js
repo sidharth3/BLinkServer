@@ -53,7 +53,7 @@ class DBUsers {
      * Registers a new user, assuming username is not already taken
      * @throws
      * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     * @param {{username, first_name, last_name, email, password, birth_year, face_encodings_strings}} payload 
      */
     async createUser(payload)
     {
@@ -73,7 +73,8 @@ class DBUsers {
                 last_name: payload.last_name,
                 email: payload.email,
                 password: hashedPassword,
-                birth_year: payload.birth_year
+                birth_year: payload.birth_year,
+                face_encodings: payload.face_encodings_strings
             });
 
             return true;

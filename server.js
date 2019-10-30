@@ -1,18 +1,34 @@
 const express = require('express');
 const config = require('./src/constants/config');
-const path = require('path');
 const app = express();
 const bodyParse = require('body-parser');
+//Firebase
 const firebase = require('firebase-admin');
 const serviceAccount = require('./credentials/blink-4df57-firebase-adminsdk-0wo3v-abda4aeb6e.json');
+//DB
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
 const DBInit = require('./src/db/dbinit');
+//Helpers
 const Respond = require('./src/helpers/Respond');
+const Files = require('./src/helpers/Files');
+//Constants
 const Responses = require('./src/constants/responses');
 const Errors = require('./src/constants/errors');
+const PythonScripts = require('./src/python/pythonscripts');
+const FACE_IMAGE_PATH = './FaceRecognition/images';
+
 const multer = require('multer');
-const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, FACE_IMAGE_PATH);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}_${file.originalname}`);
+    }
+})
+
+const upload = multer({storage});
 
 
 firebase.initializeApp({
@@ -22,8 +38,8 @@ firebase.initializeApp({
 
 const firestore = firebase.firestore();
 
-const dbinit = new DBInit(firestore);
-dbinit.initializeDB();
+// const dbinit = new DBInit(firestore);
+// dbinit.initializeDB();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 
@@ -54,49 +70,25 @@ app.post('/login', async (req,res)=>{
     }
 });
 
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './FaceRecognition/images')
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`);
-    }
-})
-
-const upload = multer({storage});
-
-app.post('/registerImage', upload.single('registrationImage'), function (req, res, next) {
-    if(!req.file){
-        return res.status(400).send("No file sent!");
-    }
-
-    getFaceEncoding(req.file.filename)
-        .then((encodings) => {
-            return res.status(200).send(JSON.stringify(encodings));
-        } )
-        .catch((err) => {
-            return res.status(500).send(err);
-        })
-
-  })
-
-app.post('/register', async (req,res)=> {
+app.post('/register', upload.single('faceimage'), async (req,res)=> {
     let username = req.body.username;
     let password = req.body.password;
     let first_name = req.body.first_name;
     let last_name = req.body.last_name;
     let email = req.body.email;
     let birth_year = req.body.birth_year;
-    
-    // let image = req.body.image;
-    // let face_encoding = PythonScripts.face_encodings(image);
+    let image_file = req.file;
 
     try {
-        let payload = {username, first_name, last_name, email, password, birth_year};
+        let payload = {username, first_name, last_name, email, password, birth_year, image_file};
         CheckRequiredFields(payload);        
 
-        let success = await dbusers.createUser(payload);
+        let face_encodings = await PythonScripts.face_encodings(image_file);        
+        Files.CleanDirectory(FACE_IMAGE_PATH); //remove images after processing
+
+        //create user account
+        let face_encodings_strings = JSON.stringify(face_encodings);
+        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encodings_strings});
         if (success) {
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
@@ -106,7 +98,7 @@ app.post('/register', async (req,res)=> {
     } catch (error) {
         console.log(error);
         Respond.Error(error, res);
-    }
+    }    
 });
 
 app.get('/getEvents', async (req,res)=> {
