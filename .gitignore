@@ -1,1 +1,6 @@
+.vscode
 node_modules/
+
+# directory to dump images for facial recognition
+FaceRecognition/images
+
