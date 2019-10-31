@@ -1,7 +1,11 @@
+//Server
 const express = require('express');
 const config = require('./src/constants/config');
 const app = express();
 const bodyParse = require('body-parser');
+//path
+const path = require('path');
+const fs = require('fs');
 //Firebase
 const firebase = require('firebase-admin');
 const serviceAccount = require('./credentials/blink-4df57-firebase-adminsdk-0wo3v-abda4aeb6e.json');
@@ -19,8 +23,6 @@ const PythonScripts = require('./src/python/pythonscripts');
 const FACE_IMAGE_PATH = './FaceRecognition/images';
 
 const multer = require('multer');
-const fs = require('fs');
-const getFaceEncoding = require('./FaceRecognition/getFaceEncoding');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, FACE_IMAGE_PATH);
@@ -44,10 +46,12 @@ const firestore = firebase.firestore();
 // dbinit.initializeDB();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
-
 app.use(bodyParse.json());
 app.use(bodyParse.urlencoded({extended: false }));
 app.set('json spaces', 2);
+
+// //images
+// app.use(express.static('public'));
 
 app.get('/', (req,res)=>{
     res.send("Hello World");
@@ -85,19 +89,33 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         let payload = {username, first_name, last_name, email, password, birth_year, image_file};
         CheckRequiredFields(payload);        
 
+        try {
+            await dbusers.getUser(username);
+            //if this does not fail, the user exists
+            throw Errors.REGISTRATION.ERROR_USERNAME_TAKEN;
+        } catch (error) {
+            if(error != Errors.USERS.ERROR_USER_DOESNT_EXIST)
+            {
+                throw error;
+            }    
+        }
+        
         let face_encodings = await PythonScripts.face_encodings(image_file);        
-        Files.CleanDirectory(FACE_IMAGE_PATH); //remove images after processing
-
+        
         //create user account
         let face_encodings_strings = JSON.stringify(face_encodings);
         let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encodings_strings});
         if (success) {
+            //if created user successfully, move the image to profile pictures            
+            Files.MoveImage(image_file.path, __dirname + `/public/profileimages/${username}.jpg`);
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else {
             throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
         }
+        
     } catch (error) {
+        Files.CleanDirectory(FACE_IMAGE_PATH); //remove images after processing
         console.log(error);
         Respond.Error(error, res);
     }    
@@ -144,6 +162,27 @@ app.get('/getProfile', async (req,res)=> {
     }
 });
 
+app.get('/getProfileImage/:username', (req, res) => {
+    var username = req.params.username;
+
+    try {
+        CheckRequiredFields({username});
+        var imagePath = path.resolve(__dirname, `public/profileimages/${username}.jpg`);
+        if (fs.existsSync(imagePath)) {
+            res.sendFile(imagePath);
+        }
+        else {
+            throw Errors.RESOURCE.ERROR_RESOURCE_NOT_FOUND;
+        }
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(Errors.RESOURCE.ERROR_RESOURCE_NOT_FOUND,res);
+    }
+
+
+});
+
 /**
  * Takes in an image, and connects users in the image
  */
@@ -151,6 +190,7 @@ app.post('/connect', async (req,res)=>{
     // let image = req.body.image;
     // let connections = PythonScripts.connections(image);
 });
+
 
 
 

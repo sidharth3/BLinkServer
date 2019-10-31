@@ -49,6 +49,13 @@ module.exports = {
             message : "Face encoding failed"        
         }
     },
+    RESOURCE : {
+        ERROR_RESOURCE_NOT_FOUND : {
+            status : "ERROR_RESOURCE_NOT_FOUND",
+            statusText : "Missing Resource",
+            message: "The resource you are looking for does not exist"
+        }
+    },
     INVALID_REQUEST_ERROR : {
         status: "INVALID_REQUEST_ERROR",
         statusText : "Error",
