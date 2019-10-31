@@ -177,10 +177,27 @@ app.get('/getProfileImage/:username', (req, res) => {
         
     } catch (error) {
         console.log(error);
-        Respond.Error(Errors.RESOURCE.ERROR_RESOURCE_NOT_FOUND,res);
+        Respond.Error(error,res);
     }
+});
 
+app.get('/getEventImage/:event_id', (req, res) => {
+    var event_id = req.params.event_id;
 
+    try {
+        CheckRequiredFields({event_id});
+        var imagePath = path.resolve(__dirname, `public/eventimages/${event_id}.jpg`);
+        if (fs.existsSync(imagePath)) {
+            res.sendFile(imagePath);
+        }
+        else {
+            throw Errors.RESOURCE.ERROR_RESOURCE_NOT_FOUND;
+        }
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error,res);
+    }
 });
 
 /**
