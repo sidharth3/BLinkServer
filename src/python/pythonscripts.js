@@ -39,7 +39,7 @@ const get_face_usernames = (image_file) => {
                     }
 
                     results = results.map((r) => JSON.parse(r));
-                    return resolve(results)
+                    return resolve(results[0])
                 });
         }
     );

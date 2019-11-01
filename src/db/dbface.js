@@ -62,6 +62,7 @@ class DBFace
             let data = await Files.ReadFile(Paths.FACE_ENCODING_LIBRARY_PATH);
             let face_encodings = JSON.parse(data);
             face_encodings[username] = face_encoding;
+            await Files.WriteFile(Paths.FACE_ENCODING_LIBRARY_PATH, JSON.stringify(face_encodings));
         } catch (error) {
             console.log(error);
         }

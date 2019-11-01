@@ -109,6 +109,8 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         //create user account
         let face_encoding_string = JSON.stringify(face_encoding);
         let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encoding_string});
+        await dbface.appendFaceEncodingToLibrary(username, face_encoding);
+        
         if (success) {
             //if created user successfully, move the image to profile pictures            
             Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username));
@@ -213,6 +215,7 @@ app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
     try {
         CheckRequiredFields({selfie_image});
         let usernames = await PythonScripts.get_face_usernames(selfie_image);
+        await dbusers.connectUsers(usernames);
         Respond.Success(usernames, res);        
     } catch (error) {
         console.log(error);

@@ -1,6 +1,7 @@
 const Errors = require('../constants/errors');
 const bcrypt = require('bcrypt');
 const config = require('../constants/config');
+const uuidv1 = require('uuid/v1');
 
 class DBUsers {
     constructor(firestore)
@@ -81,21 +82,41 @@ class DBUsers {
         }
     }
 
-    async connectUsers(username_a, username_b)
+    /**
+     * 
+     * @param {Array.<String>} usernames 
+     */
+    async connectUsers(usernames)
     {
-        let userDocA = this.collection().doc(username_a);
-        let user_a = await userDocA.get();
-        let userDocB = this.collection().doc(username_b);
-        let user_b = await userDocB.get();
-
-        if(!user_a.exists || !user_b.exists)
-        {
-            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
-        }
-
-        let connections_collection = this.firestore.collection('connections')
-        let uuid = "1234";
-        connections_collection.doc(uuid).set([username_b, username_b]);
+        // let connections = [];
+        let connections_collection = this.firestore.collection('connections');
+        
+        for(let i=0; i<usernames.length;i++)
+        {   
+            let username = usernames[i];
+            //image is not taken 
+            if(username == "UNKNOWN")        
+            {
+                continue;
+            }
+            
+            let userDoc = this.collection().doc(username);
+            let user = await userDoc.get();        
+            
+            if(!user.exists)
+            {
+                throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+            }
+            
+            for (let j = i + 1; j < usernames.length; j++) {
+                // connections.push([usernames[i], usernames[j]]);
+                let connection = [usernames[i], usernames[j]];                
+                //so that retrieval is easy, connection sorted
+                connection.sort();
+                let id = uuidv1().toString();
+                connections_collection.doc(id).set({0: connection[0], 1: connection[1]});
+            }
+        }                
     }
 
     /**

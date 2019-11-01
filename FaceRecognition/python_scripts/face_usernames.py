@@ -67,7 +67,7 @@ def main():
 	# Loop through each face found in the unknown image
 	for (top,right,bottom,left), face_encoding in zip(face_locations, face_encodings):		
 		matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-		name = "Unknown"
+		name = "UNKNOWN"
 		
 		face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 		best_match_idx = np.argmin(face_distances)
