@@ -6,7 +6,7 @@ const Success = (data ,res)=>{
 };
 
 const Error = (data ,res)=>{
-    res.send({
+    res.status(400).send({
         status: "ERROR",
         data
     });
