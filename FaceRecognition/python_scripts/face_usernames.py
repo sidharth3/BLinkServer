@@ -12,7 +12,7 @@ import face_recognition
 import json
 import numpy as np
 from PIL import Image, ImageDraw
-from IPython.display import display
+# from IPython.display import display
 import matplotlib.pyplot as plt
 import argparse 
 
@@ -24,6 +24,7 @@ def getKey( img_dict, value ):
 def argParser(): # arg parser
 	parser = argparse.ArgumentParser(description ="Process image path")
 	parser.add_argument('image_path', type=str, help='Input path of the selfie')
+	parser.add_argument('library_path', type=str, help='Input path of the face encodings library')
 
 	return parser.parse_args()
 
@@ -39,10 +40,12 @@ def jsonPrint(connector_ls):
 
 
 def main():
-	json_path = 'face_encoding_library.json'
+	
 	connector_ls = []
 
 	arg=argParser()
+	library_path = arg.library_path
+
 	#load image
 	selfie_img = face_recognition.load_image_file(arg.image_path)
 	face_locations = face_recognition.face_locations(selfie_img)
@@ -53,20 +56,19 @@ def main():
 	draw = ImageDraw.Draw(pil_img)
 
 	#get dictionary
-	with open(json_path, 'r') as f:
+	with open(library_path, 'r') as f:
 	    json_text = f.read()
 	img_dict =  json.loads(json_text)
 
 	for user_name in img_dict:
 		img_dict[user_name] = np.array(img_dict[user_name])
 
-	known_face_encodings = list(img_dict.values())
-
+	known_face_encodings = list(img_dict.values())	
 	# Loop through each face found in the unknown image
-	for (top,right,bottom,left), face_encoding in zip(face_locations, face_encodings):
+	for (top,right,bottom,left), face_encoding in zip(face_locations, face_encodings):		
 		matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
 		name = "Unknown"
-
+		
 		face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 		best_match_idx = np.argmin(face_distances)
 		if matches[best_match_idx]:
@@ -85,7 +87,8 @@ def main():
 	# Remove the drawing library from memory as per the Pillow docs
 	del draw
 
-	jsonPrint(connector_ls)
+	# jsonPrint(connector_ls)
+	print(json.dumps(connector_ls))
 	# Display the resulting image UNCOMMENT TO SEE
 	# plt.imshow(pil_img)
 	# plt.show()

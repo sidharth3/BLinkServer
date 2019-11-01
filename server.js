@@ -36,6 +36,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage});
 
+JSON.parse(`["x"]`)
 
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
@@ -211,11 +212,11 @@ app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
 
     try {
         CheckRequiredFields({selfie_image});
-        let connections = await PythonScripts.get_connections(selfie_image);
-        
+        let usernames = await PythonScripts.get_face_usernames(selfie_image);
+        Respond.Success(usernames, res);        
     } catch (error) {
         console.log(error);
-        Respond.Error(error);
+        Respond.Error(error, res);
     }
     // let image = req.body.image;
     // let connections = PythonScripts.connections(image);

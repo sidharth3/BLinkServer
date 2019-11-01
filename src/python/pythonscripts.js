@@ -16,26 +16,26 @@ const face_encoding = (image_file) => {
                         return reject(Errors.PYTHON.ERROR_FACE_ENCODING_FAILED);
                     }
 
-                    results = results.map((r) => JSON.parse(r));
-                    return resolve(results)
+                    results = results.map((r) => JSON.parse(r));                    
+                    return resolve(results[0])
                 });
         }
     );
 }
 
-const get_connections = (image_file) => {
+const get_face_usernames = (image_file) => {
     return new Promise(
         (resolve, reject) => {
-            PythonShell.run("face_recog.py", {
+            PythonShell.run("face_usernames.py", {
                 mode: 'text',
                 pythonOptions: ['-u'], // get print results in real-time                
                 scriptPath: './FaceRecognition/python_scripts',
-                args: [`./FaceRecognition/images/${image_file.filename}`]
+                args: [`./FaceRecognition/images/${image_file.filename}`,`./FaceRecognition/python_scripts/face_encoding_library.json` ]
             },
                 (err, results) => {
                     if (err) {
                         console.log(err);
-                        return reject(Errors.PYTHON.ERROR_FACE_ENCODING_FAILED);
+                        return reject({...Errors.PYTHON.ERROR_FACE_ENCODING_FAILED, data: err});
                     }
 
                     results = results.map((r) => JSON.parse(r));
@@ -44,4 +44,4 @@ const get_connections = (image_file) => {
         }
     );
 }
-module.exports = {face_encoding, get_connections};
+module.exports = {face_encoding, get_face_usernames};

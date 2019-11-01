@@ -33,8 +33,7 @@ class DBFace
         {
             if(user.username && user.face_encoding)
             {
-                library[user.username] = user.face_encoding;
-                
+                library[user.username] = JSON.parse(user.face_encoding);                
             }
         }
         return library;
@@ -44,21 +43,27 @@ class DBFace
     {
         try {
             let face_encoding_library = await this.getFaceEncodingLibrary();
-            let filepath = Paths.FACE_ENCODING_LIBRARY_PATH;
             let data = JSON.stringify(face_encoding_library);
-            await Files.WriteFile(filepath, data);
+            await Files.WriteFile(Paths.FACE_ENCODING_LIBRARY_PATH, data);
             console.log("=====FACE ENCODINGS LOADED=====");        
         } catch (error) {
             console.log(error);
         }
     }
 
-    async appendFaceEncodingToLibrary()
+    /**
+     * Adds the user's face encoding to the local library     
+     * @param {*} username 
+     * @param {*} face_encoding 
+     */
+    async appendFaceEncodingToLibrary(username, face_encoding)
     {
-        try {
-            Files.ReadFile()
+        try {            
+            let data = await Files.ReadFile(Paths.FACE_ENCODING_LIBRARY_PATH);
+            let face_encodings = JSON.parse(data);
+            face_encodings[username] = face_encoding;
         } catch (error) {
-            
+            console.log(error);
         }
     }
 }
