@@ -110,7 +110,7 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         let face_encoding_string = JSON.stringify(face_encoding);
         let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encoding_string});
         await dbface.appendFaceEncodingToLibrary(username, face_encoding);
-        
+
         if (success) {
             //if created user successfully, move the image to profile pictures            
             Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username));
@@ -121,7 +121,7 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         }
         
     } catch (error) {
-        Files.CleanDirectory(FACE_IMAGE_PATH); //remove images after processing
+        Files.DeleteFile(image_file.path);
         console.log(error);
         Respond.Error(error, res);
     }    
@@ -220,9 +220,9 @@ app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
     } catch (error) {
         console.log(error);
         Respond.Error(error, res);
+    } finally {
+        Files.DeleteFile(selfie_image.path); //remove images after processing
     }
-    // let image = req.body.image;
-    // let connections = PythonScripts.connections(image);
 });
 
 app.listen(config.port,()=>{

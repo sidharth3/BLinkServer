@@ -14,6 +14,12 @@ const CleanDirectory = (directory) => {
     });
 }
 
+const DeleteFile = (filepath) => {
+    fs.unlink(filepath, err => {
+        if (err) throw err;
+    });
+}
+
 const MoveImage = (from_path, to_path) => {
     fs.rename(from_path, to_path, (error) => {
         if (error) {
@@ -54,4 +60,4 @@ const WriteFile = (path, data) => {
     });
 }
 
-module.exports = { CleanDirectory, MoveImage, ReadFile, WriteFile }
+module.exports = { DeleteFile, CleanDirectory, MoveImage, ReadFile, WriteFile }
