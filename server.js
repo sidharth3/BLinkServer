@@ -12,11 +12,13 @@ const serviceAccount = require('./credentials/blink-4df57-firebase-adminsdk-0wo3
 //DB
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
+const DBFace = require('./src/db/dbface');
 const DBInit = require('./src/db/dbinit');
 //Helpers
 const Respond = require('./src/helpers/Respond');
 const Files = require('./src/helpers/Files');
 //Constants
+const Paths = require('./src/helpers/Paths');
 const Responses = require('./src/constants/responses');
 const Errors = require('./src/constants/errors');
 const PythonScripts = require('./src/python/pythonscripts');
@@ -46,12 +48,13 @@ const firestore = firebase.firestore();
 // dbinit.initializeDB();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
+
+const dbface = new DBFace(firestore);
+dbface.loadFaceEncodingLibrary();
+
 app.use(bodyParse.json());
 app.use(bodyParse.urlencoded({extended: false }));
 app.set('json spaces', 2);
-
-// //images
-// app.use(express.static('public'));
 
 app.get('/', (req,res)=>{
     res.send("Hello World");
@@ -100,14 +103,14 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
             }    
         }
         
-        let face_encodings = await PythonScripts.face_encodings(image_file);        
+        let face_encoding = await PythonScripts.face_encoding(image_file);        
         
         //create user account
-        let face_encodings_strings = JSON.stringify(face_encodings);
-        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encodings_strings});
+        let face_encoding_string = JSON.stringify(face_encoding);
+        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encoding_string});
         if (success) {
             //if created user successfully, move the image to profile pictures            
-            Files.MoveImage(image_file.path, __dirname + `/public/profileimages/${username}.jpg`);
+            Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username));
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else {
@@ -167,7 +170,7 @@ app.get('/getProfileImage/:username', (req, res) => {
 
     try {
         CheckRequiredFields({username});
-        var imagePath = path.resolve(__dirname, `public/profileimages/${username}.jpg`);
+        var imagePath = Paths.PROFILE_IMAGE_PATH(username);
         if (fs.existsSync(imagePath)) {
             res.sendFile(imagePath);
         }
@@ -186,7 +189,7 @@ app.get('/getEventImage/:event_id', (req, res) => {
 
     try {
         CheckRequiredFields({event_id});
-        var imagePath = path.resolve(__dirname, `public/eventimages/${event_id}.jpg`);
+        var imagePath = Paths.EVENT_IMAGE_PATH(event_id);
         if (fs.existsSync(imagePath)) {
             res.sendFile(imagePath);
         }
@@ -203,16 +206,23 @@ app.get('/getEventImage/:event_id', (req, res) => {
 /**
  * Takes in an image, and connects users in the image
  */
-app.post('/connect', async (req,res)=>{
+app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
+    let selfie_image = req.file;
+
+    try {
+        CheckRequiredFields({selfie_image});
+        let connections = await PythonScripts.get_connections(selfie_image);
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error);
+    }
     // let image = req.body.image;
     // let connections = PythonScripts.connections(image);
 });
 
-
-
-
 app.listen(config.port,()=>{
-    console.log(`Server started on port ${config.port}`);
+    console.log(`=====SERVER STARTED ON PORT: ${config.port}=====`);
 });
 
 function CheckRequiredFields(object)

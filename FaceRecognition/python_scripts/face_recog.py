@@ -39,7 +39,7 @@ def jsonPrint(connector_ls):
 
 
 def main():
-	json_path = 'img_data.json'
+	json_path = 'face_encoding_library.json'
 	connector_ls = []
 
 	arg=argParser()

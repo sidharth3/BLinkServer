@@ -26,4 +26,32 @@ const MoveImage = (from_path, to_path) => {
     });
 }
 
-module.exports = { CleanDirectory, MoveImage }
+const ReadFile = (path) => {
+    return new Promise((resolve,reject)=>{
+        fs.readFile(path,function(error, data){
+            if(error) {
+                reject(error);
+            }        
+            else
+            {
+                resolve(data);
+            }
+        })        
+    });
+}
+
+const WriteFile = (path, data) => {
+    return new Promise((resolve,reject)=>{
+        fs.writeFile(path, data, function(error) {    
+            if(error) {
+                reject(error);
+            }        
+            else
+            {
+                resolve();
+            }
+        }); 
+    });
+}
+
+module.exports = { CleanDirectory, MoveImage, ReadFile, WriteFile }

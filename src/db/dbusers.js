@@ -28,7 +28,7 @@ class DBUsers {
         }
     
         return users;        
-    }
+    }    
 
     async getUser(username)
     {
@@ -53,7 +53,7 @@ class DBUsers {
      * Registers a new user, assuming username is not already taken
      * @throws
      * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year, face_encodings_strings}} payload 
+     * @param {{username, first_name, last_name, email, password, birth_year, face_encoding_string}} payload 
      */
     async createUser(payload)
     {
@@ -74,12 +74,28 @@ class DBUsers {
                 email: payload.email,
                 password: hashedPassword,
                 birth_year: payload.birth_year,
-                face_encodings: payload.face_encodings_strings
+                face_encoding: payload.face_encoding_string
             });
 
             return true;
         }
+    }
 
+    async connectUsers(username_a, username_b)
+    {
+        let userDocA = this.collection().doc(username_a);
+        let user_a = await userDocA.get();
+        let userDocB = this.collection().doc(username_b);
+        let user_b = await userDocB.get();
+
+        if(!user_a.exists || !user_b.exists)
+        {
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+
+        let connections_collection = this.firestore.collection('connections')
+        let uuid = "1234";
+        connections_collection.doc(uuid).set([username_b, username_b]);
     }
 
     /**
