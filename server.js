@@ -6,9 +6,6 @@ const bodyParse = require('body-parser');
 //path
 const path = require('path');
 const fs = require('fs');
-//Firebase
-const firebase = require('firebase-admin');
-const serviceAccount = require('./credentials/blink-4df57-firebase-adminsdk-0wo3v-abda4aeb6e.json');
 //DB
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
@@ -23,6 +20,9 @@ const Responses = require('./src/constants/responses');
 const Errors = require('./src/constants/errors');
 const PythonScripts = require('./src/python/pythonscripts');
 const FACE_IMAGE_PATH = './FaceRecognition/images';
+//Firebase
+const firebase = require('firebase-admin');
+const serviceAccount = require(Paths.CREDENTIALS_PATH);
 
 const multer = require('multer');
 const storage = multer.diskStorage({
