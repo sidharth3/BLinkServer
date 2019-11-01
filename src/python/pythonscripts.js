@@ -1,6 +1,5 @@
 const { PythonShell } = require('python-shell');
 const Errors = require('../constants/errors');
-const isUbuntu = false;
 
 const face_encodings = (image_file) => {
 
@@ -8,8 +7,7 @@ const face_encodings = (image_file) => {
         (resolve, reject) => {
             PythonShell.run("face_encoding.py", {
                 mode: 'text',
-                pythonOptions: ['-u'], // get print results in real-time
-                pythonPath: isUbuntu ? './python_venv_ubuntu/bin/python3' : undefined,
+                pythonOptions: ['-u'], // get print results in real-time,
                 scriptPath: './FaceRecognition/python_scripts',
                 args: [`./FaceRecognition/images/${image_file.filename}`]
             },

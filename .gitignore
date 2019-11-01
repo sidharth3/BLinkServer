@@ -1,8 +1,8 @@
-.vscode
+.vscode/
 node_modules/
 
 credentials/blink-4df57-firebase-adminsdk-0wo3v-abda4aeb6e.json
 
 # directory to dump images for facial recognition
-FaceRecognition/images
+FaceRecognition/images/*
 FaceRecognition/*.jpg
