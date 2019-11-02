@@ -255,11 +255,27 @@ app.get('/getEventImage/:event_id', (req, res) => {
  * Takes in an image, and connects users in the image
  */
 app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
+    let username = req.body.username;
     let selfie_image = req.file;
 
     try {
-        CheckRequiredFields({selfie_image});
-        let usernames = await PythonScripts.get_face_usernames(selfie_image);
+        CheckRequiredFields({username, selfie_image});
+        let time = Date.now();
+        let usernames = await PythonScripts.get_face_usernames(selfie_image);        
+        let after = Date.now();
+
+        if(usernames.indexOf(username) == -1)
+        {
+            throw Errors.FACE.ERROR_USER_NOT_IN_IMAGE;
+        }
+
+        if(usernames.length <= 1)
+        {
+            throw Errors.FACE.ERROR_NOT_ENOUGH_FACES;
+        }        
+        
+        console.log(`Time taken to process connection: ${after - time}`);
+
         await dbusers.connectUsers(usernames);
         Respond.Success(usernames, res);        
     } catch (error) {

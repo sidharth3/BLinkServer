@@ -15,9 +15,12 @@ const CleanDirectory = (directory) => {
 }
 
 const DeleteFile = (filepath) => {
-    fs.unlink(filepath, err => {
-        if (err) throw err;
-    });
+    if(fs.existsSync(filepath))
+    {
+        fs.unlink(filepath, err => {
+            if (err) throw err;
+        });
+    }
 }
 
 const MoveImage = (from_path, to_path) => {

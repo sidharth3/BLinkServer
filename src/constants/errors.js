@@ -57,6 +57,18 @@ module.exports = {
             message : "The user you are looking for does not exist"        
         }
     },   
+    FACE : {
+        ERROR_NOT_ENOUGH_FACES : {
+            status: "ERROR_NOT_ENOUGH_FACES",
+            statusText : "Error",
+            message : "The connection cannot be made because not enough faces were detected"
+        },
+        ERROR_USER_NOT_IN_IMAGE : {
+            status: "ERROR_USER_NOT_IN_IMAGE",
+            statusText : "Error",
+            message : "The connection cannot be made because the requesting user is not in the image"            
+        }
+    },
     PYTHON : {
         ERROR_FACE_ENCODING_FAILED : {            
             status: "ERROR_FACE_ENCODING_FAILED",
