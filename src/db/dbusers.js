@@ -14,6 +14,10 @@ class DBUsers {
         return this.firestore.collection("users");
     }
 
+    async userExists(username){
+        var user = await this.collection().doc(username).get();
+        return user.exists;
+    }   
     /**
      * Returns a list of all users
      */

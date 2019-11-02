@@ -29,6 +29,21 @@ module.exports = {
             statusText : "Error",
             message : "Failed to load events"        
         },
+        ERROR_USER_NOT_REGISTERED : {
+            status: "ERROR_USER_NOT_REGISTERED",
+            statusText : "Error",
+            message : "This user is not registered for this event"         
+        },
+        ERROR_EVENT_REGISTER_FAILED : {
+            status: "ERROR_EVENT_REGISTER_FAILED",
+            statusText : "Error",
+            message : "Failed to register for event"         
+        },
+        ERROR_EVENT_DOESNT_EXIST : {
+            status: "ERROR_EVENT_DOESNT_EXIST",
+            statusText : "Error",
+            message : "Event does not exist"                     
+        }
     },
     USERS: {
         ERROR_USER_RETRIEVAL_FAILED : {
@@ -41,7 +56,7 @@ module.exports = {
             statusText : "Error",
             message : "The user you are looking for does not exist"        
         }
-    },    
+    },   
     PYTHON : {
         ERROR_FACE_ENCODING_FAILED : {            
             status: "ERROR_FACE_ENCODING_FAILED",

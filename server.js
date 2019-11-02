@@ -9,6 +9,7 @@ const fs = require('fs');
 //DB
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
+const DBRegistrations = require('./src/db/dbregistrations');
 const DBFace = require('./src/db/dbface');
 const DBInit = require('./src/db/dbinit');
 //Helpers
@@ -49,6 +50,7 @@ const firestore = firebase.firestore();
 // dbinit.initializeDB();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
+const dbregistrations = new DBRegistrations(firestore);
 
 const dbface = new DBFace(firestore);
 dbface.loadFaceEncodingLibrary();
@@ -152,7 +154,50 @@ app.get('/getEventDetail', async (req,res)=> {
 });
 
 app.post('/registerForEvent', async (req,res)=> {
+    let username = req.body.username;
+    let event_id = req.body.event_id;
     
+    try {
+        CheckRequiredFields({username, event_id});
+        let exists = await dbusers.userExists(username);
+        if(!exists){
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        await dbregistrations.registerUserForEvent(username, event_id);        
+        Respond.Success(Responses.REGISTER_SUCCESS, res);
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+app.post('/markAttendanceForEvent', async (req,res)=> {
+    let username = req.body.username;
+    let event_id = req.body.event_id;
+
+    try {
+        CheckRequiredFields({username, event_id});
+        let exists = await dbusers.userExists(username);
+        if(!exists){
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        await dbregistrations.markUserAttendanceForEvent(username, event_id);        
+        Respond.Success(Responses.REGISTER_SUCCESS, res);
+    } catch (error) {
+        Respond.Error(error, res);
+    }
+});
+
+app.post('/registrationsForEvent', async (req,res)=> {
+    let event_id = req.body.event_id;
+
+    try {
+        CheckRequiredFields({event_id});
+        await dbregistrations.registrationsForEvent(event_id);        
+        Respond.Success(Responses.REGISTER_SUCCESS, res);
+    } catch (error) {
+        Respond.Error(error, res);
+    }
 });
 
 app.get('/getProfile', async (req,res)=> {
