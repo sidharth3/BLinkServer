@@ -68,7 +68,16 @@ class DBRegistrations {
 
     async registrationsForEvent(event_id) {
         let event_registrations = await this.collection().doc(event_id).get();
-        return event_registrations;
+
+        if (event_registrations.exists) {
+            let event_registration_data = event_registrations.data();
+            let registrations = Object.keys(event_registration_data).map((key)=>event_registration_data[key]);
+            return registrations;
+        }
+        else
+        {
+            throw Errors.EVENTS.ERROR_EVENT_DOESNT_EXIST;
+        }
     }
 }
 

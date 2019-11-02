@@ -193,8 +193,8 @@ app.post('/registrationsForEvent', async (req,res)=> {
 
     try {
         CheckRequiredFields({event_id});
-        await dbregistrations.registrationsForEvent(event_id);        
-        Respond.Success(Responses.REGISTER_SUCCESS, res);
+        let registrations = await dbregistrations.registrationsForEvent(event_id);        
+        Respond.Success(registrations, res);
     } catch (error) {
         Respond.Error(error, res);
     }
