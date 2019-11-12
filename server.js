@@ -123,7 +123,10 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         }
         
     } catch (error) {
-        Files.DeleteFile(image_file.path);
+        if(image_file)
+        {
+            Files.DeleteFile(image_file.path);
+        }
         console.log(error);
         Respond.Error(error, res);
     }    
@@ -254,7 +257,7 @@ app.get('/getEventImage/:event_id', (req, res) => {
 /**
  * Takes in an image, and connects users in the image
  */
-app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
+app.post('/connect', upload.single('selfie_image'), async (req,res)=>{
     let username = req.body.username;
     let selfie_image = req.file;
 
@@ -282,7 +285,10 @@ app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
         console.log(error);
         Respond.Error(error, res);
     } finally {
-        Files.DeleteFile(selfie_image.path); //remove images after processing
+        if(selfie_image !== undefined)
+        {
+            Files.DeleteFile(selfie_image.path); //remove images after processing
+        }
     }
 });
 
