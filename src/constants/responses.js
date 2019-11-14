@@ -9,4 +9,9 @@ module.exports = {
         statusText : "Success",
         message : "Register Successful"        
     },    
+    FACE_REGISTER_SUCCESS : {
+        status: "FACE_REGISTER_SUCCESS",
+        statusText : "Success",
+        message : "Register Successful"        
+    },    
 }

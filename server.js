@@ -82,17 +82,16 @@ app.post('/login', async (req,res)=>{
     }
 });
 
-app.post('/register', upload.single('faceimage'), async (req,res)=> {
+app.post('/register', async (req,res)=> {
     let username = req.body.username;
     let password = req.body.password;
     let first_name = req.body.first_name;
     let last_name = req.body.last_name;
     let email = req.body.email;
-    let birth_year = req.body.birth_year;
-    let image_file = req.file;
+    let birth_year = req.body.birth_year;        
 
     try {
-        let payload = {username, first_name, last_name, email, password, birth_year, image_file};
+        let payload = {username, first_name, last_name, email, password, birth_year};
         CheckRequiredFields(payload);        
 
         try {
@@ -105,17 +104,10 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
                 throw error;
             }    
         }
+        //create user account        
+        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year});
         
-        let face_encoding = await PythonScripts.face_encoding(image_file);        
-        
-        //create user account
-        let face_encoding_string = JSON.stringify(face_encoding);
-        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encoding_string});
-        await dbface.appendFaceEncodingToLibrary(username, face_encoding);
-
-        if (success) {
-            //if created user successfully, move the image to profile pictures            
-            Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username));
+        if (success) {            
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else {
@@ -123,14 +115,43 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         }
         
     } catch (error) {
-        if(image_file)
-        {
-            Files.DeleteFile(image_file.path);
-        }
         console.log(error);
         Respond.Error(error, res);
     }    
 });
+
+app.post('/registerFace', upload.single('image_file'), async (req,res)=>{    
+    let image_file = req.file;
+    let username = req.body.username;
+
+    try {
+        CheckRequiredFields({username, image_file});     
+        let face_encoding = await PythonScripts.face_encoding(image_file);      
+        let face_encoding_string = JSON.stringify(face_encoding);
+        let success = await dbusers.addFaceEncodingForUser(face_encoding_string, username);
+        if(success)
+        {            
+            await dbface.appendFaceEncodingToLibrary(username, face_encoding);
+            //if created user successfully, move the image to profile pictures            
+            Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username)); 
+            Respond.Success(Responses.REGISTER_SUCCESS, res);
+        }
+        else
+        {
+            throw Errors.FACE.ERROR_COULD_NOT_ASSIGN_FACE;
+        }
+        
+    } catch (error) {
+        if(image_file)
+        {
+            Files.DeleteFile(image_file.path);
+        }
+
+        console.log(error);
+        Respond.Error(error, res);
+    }
+})
+
 
 app.get('/getEvents', async (req,res)=> {
 

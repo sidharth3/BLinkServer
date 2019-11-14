@@ -67,6 +67,11 @@ module.exports = {
             status: "ERROR_USER_NOT_IN_IMAGE",
             statusText : "Error",
             message : "The connection cannot be made because the requesting user is not in the image"            
+        },
+        ERROR_COULD_NOT_ASSIGN_FACE :{
+            status: "ERROR_COULD_NOT_ASSIGN_FACE",
+            statusText : "Error",
+            message : "The image could not be assigned to this user. Please try again later"            
         }
     },
     PYTHON : {

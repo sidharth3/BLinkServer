@@ -58,7 +58,7 @@ class DBUsers {
      * Registers a new user, assuming username is not already taken
      * @throws
      * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year, face_encoding_string}} payload 
+     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
      */
     async createUser(payload)
     {
@@ -71,7 +71,6 @@ class DBUsers {
         else
         {
             let hashedPassword = await this.hashedpassword(payload.password);
-            this.collection().doc(payload.username);
             userDoc.set({
                 username : payload.username,
                 first_name: payload.first_name,
@@ -79,9 +78,30 @@ class DBUsers {
                 email: payload.email,
                 password: hashedPassword,
                 birth_year: payload.birth_year,
-                face_encoding: payload.face_encoding_string
+                face_encoding : [],
+                status: 'PENDING'                
             });
 
+            return true;
+        }
+
+        return false;
+    }
+
+    async addFaceEncodingForUser(face_encoding_string, username)
+    {
+        let userDoc = this.collection().doc(username);
+        let user = await userDoc.get();
+        if(!user.exists)
+        {
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        else
+        {    
+            let userData = user.data();        
+            userData.status = 'ACTIVE'; //user only becomes active after uploading face
+            userData.face_encoding = face_encoding_string;
+            userDoc.set(userData)            
             return true;
         }
     }
