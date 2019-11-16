@@ -79,6 +79,11 @@ module.exports = {
             status: "ERROR_FACE_ENCODING_FAILED",
             statusText : "Error",
             message : "Face encoding failed"        
+        },
+        MALFORMED_FACE_IMAGE : {            
+            status: "MALFORMED_FACE_IMAGE",
+            statusText : "Error",
+            message : "The image did not present a valid face"        
         }
     },
     RESOURCE : {

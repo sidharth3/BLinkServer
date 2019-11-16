@@ -21,12 +21,21 @@ def main():
 	arg = argParser()
 
 	# image load and encode
-	user_img = face_recognition.load_image_file(arg.image_path)
-	user_img_encoding = face_recognition.face_encodings(user_img)[0]
-	user_img_encoding_jsoned = user_img_encoding.tolist()
-
-	# print the encoded image
-	print(user_img_encoding_jsoned)
+	try:
+		user_img = face_recognition.load_image_file(arg.image_path)		
+	except:
+		print("FAILED_BAD_IMAGE_FILE")
+		return
+	face_encodings = face_recognition.face_encodings(user_img)
+	if len(face_encodings) != 0:
+		user_img_encoding = face_encodings[0]
+		user_img_encoding_jsoned = user_img_encoding.tolist()		
+		# print the encoded image
+		print(user_img_encoding_jsoned)
+	else:	
+		print("FAILED_BAD_IMAGE_NOFACE")		
+	
+	
 	
 
 

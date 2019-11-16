@@ -122,7 +122,7 @@ app.post('/register', async (req,res)=> {
 
 app.post('/registerFace', upload.single('image_file'), async (req,res)=>{    
     let image_file = req.file;
-    let username = req.body.username;
+    let username = req.body.username;    
 
     try {
         CheckRequiredFields({username, image_file});     
@@ -134,7 +134,7 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
             await dbface.appendFaceEncodingToLibrary(username, face_encoding);
             //if created user successfully, move the image to profile pictures            
             Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username)); 
-            Respond.Success(Responses.REGISTER_SUCCESS, res);
+            Respond.Success(Responses.REGISTER_SUCCESS, res);            
         }
         else
         {

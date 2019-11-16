@@ -16,8 +16,15 @@ const face_encoding = (image_file) => {
                         return reject(Errors.PYTHON.ERROR_FACE_ENCODING_FAILED);
                     }
 
-                    results = results.map((r) => JSON.parse(r));                    
-                    return resolve(results[0])
+                    if (results[0] == "FAILED_BAD_IMAGE_NOFACE" || results[0] == "FAILED_BAD_IMAGE_FILE")
+                    {
+                        return reject(Errors.PYTHON.MALFORMED_FACE_IMAGE)
+                    }
+                    else
+                    {
+                        results = results.map((r) => JSON.parse(r));
+                        return resolve(results[0])
+                    }   
                 });
         }
     );
@@ -36,7 +43,7 @@ const get_face_usernames = (image_file) => {
                     if (err) {
                         console.log(err);
                         return reject({...Errors.PYTHON.ERROR_FACE_ENCODING_FAILED, data: err});
-                    }
+                    }                    
 
                     results = results.map((r) => JSON.parse(r));
                     return resolve(results[0])
