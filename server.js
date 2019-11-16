@@ -296,7 +296,7 @@ app.post('/createEvent', async (req,res)=> {
     try {
         let payload = {org_username, event_id,event_name,date,price};
         CheckRequiredFields(payload);        
-        let exists = await dborgs.orgExists(event_id);
+        let exists = await dborgs.orgExists(org_username);
         if(!exists){
             throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
         }

@@ -44,8 +44,8 @@ module.exports = {
             statusText : "Error",
             message : "Event does not exist"                     
         },
-        ERROR_EVEN_ID_TAKEN : {
-            status: "ERROR_EVEN_ID_TAKEN",
+        ERROR_EVENT_ID_TAKEN : {
+            status: "ERROR_EVENT_ID_TAKEN",
             statusText : "Error",
             message : "Event ID has already been taken"                     
         }

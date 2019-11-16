@@ -82,7 +82,7 @@ class DBOrgs {
      * @returns {Promise<boolean>} successful log in or not
      * @throws 
      */
-    async login(username, password)
+    async login(org_username, password)
     {
         try {
             let user = await this.collection().doc(org_username).get();
