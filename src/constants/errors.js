@@ -43,6 +43,11 @@ module.exports = {
             status: "ERROR_EVENT_DOESNT_EXIST",
             statusText : "Error",
             message : "Event does not exist"                     
+        },
+        ERROR_EVEN_ID_TAKEN : {
+            status: "ERROR_EVEN_ID_TAKEN",
+            statusText : "Error",
+            message : "Event ID has already been taken"                     
         }
     },
     USERS: {

@@ -12,6 +12,7 @@ const DBEvents = require('./src/db/dbevents');
 const DBRegistrations = require('./src/db/dbregistrations');
 const DBFace = require('./src/db/dbface');
 const DBInit = require('./src/db/dbinit');
+const DBOrgs = require('./src/db/dborgs');
 //Helpers
 const Respond = require('./src/helpers/Respond');
 const Files = require('./src/helpers/Files');
@@ -51,6 +52,7 @@ const firestore = firebase.firestore();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 const dbregistrations = new DBRegistrations(firestore);
+const dborgs = new DBOrgs(firestore);
 
 const dbface = new DBFace(firestore);
 dbface.loadFaceEncodingLibrary();
@@ -82,6 +84,7 @@ app.post('/login', async (req,res)=>{
     }
 });
 
+//user end 
 app.post('/register', async (req,res)=> {
     let username = req.body.username;
     let password = req.body.password;
@@ -120,9 +123,47 @@ app.post('/register', async (req,res)=> {
     }    
 });
 
+app.post('/registerOrg', async (req,res)=> {
+    let org_username = req.body.org_username;
+    let password = req.body.password;
+    let first_name = req.body.first_name;
+    let last_name = req.body.last_name;
+    let email = req.body.email;
+    let organisation_name = req.body.organisation_name;        
+
+    try {
+        let payload = {org_username, first_name, last_name, email, password, organisation_name};
+        CheckRequiredFields(payload);        
+
+        try {
+            await dborgs.getOrg(org_username);
+            //if this does not fail, the user exists
+            throw Errors.REGISTRATION.ERROR_USERNAME_TAKEN;
+        } catch (error) {
+            if(error != Errors.USERS.ERROR_USER_DOESNT_EXIST)
+            {
+                throw error;
+            }    
+        }
+        //create user account        
+        let success = await dborgs.createOrg({org_username, first_name, last_name, email, password, organisation_name});
+        
+        if (success) {            
+            Respond.Success(Responses.REGISTER_SUCCESS, res);
+        }
+        else {
+            throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
+        }
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }    
+});
+
 app.post('/registerFace', upload.single('image_file'), async (req,res)=>{    
     let image_file = req.file;
-    let username = req.body.username;    
+    let username = req.body.username;
 
     try {
         CheckRequiredFields({username, image_file});     
@@ -134,7 +175,7 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
             await dbface.appendFaceEncodingToLibrary(username, face_encoding);
             //if created user successfully, move the image to profile pictures            
             Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username)); 
-            Respond.Success(Responses.REGISTER_SUCCESS, res);            
+            Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else
         {
@@ -151,7 +192,6 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
         Respond.Error(error, res);
     }
 })
-
 
 app.get('/getEvents', async (req,res)=> {
 
@@ -222,6 +262,35 @@ app.post('/registrationsForEvent', async (req,res)=> {
     } catch (error) {
         Respond.Error(error, res);
     }
+});
+
+
+// not checking for org_username because only organiser can use this page
+app.post('/createEvent', async (req,res)=> {
+    let org_username = req.body.org_username; 
+    let event_id = req.body.event_id;
+    let event_name = req.body.event_name;
+    let date = req.body.date;
+    let price = req.body.price;
+
+
+    try {
+        let payload = {org_username, event_id,event_name,date,price};
+        CheckRequiredFields(payload);        
+        let exists = await dborgs.orgExists(event_id);
+        if(!exists){
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        await dbevents.createEvent({org_username, event_id,event_name,date,price})
+        Respond.Success(Responses.REGISTER_SUCCESS, res);
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+app.get('/getAttendees', async (req,res)=> {
+    //
 });
 
 app.get('/getProfile', async (req,res)=> {
