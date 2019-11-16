@@ -84,6 +84,25 @@ app.post('/login', async (req,res)=>{
     }
 });
 
+app.post('/loginOrg', async (req,res)=>{
+    let org_username = req.body.org_username;
+    let password = req.body.password;
+
+    try {
+        CheckRequiredFields({org_username, password});        
+
+        let success = await dborgs.login(org_username, password);
+        if (success) {
+            Respond.Success(Responses.LOGIN_SUCCESS, res);
+        }
+        else {
+            throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
+        }
+    } catch (error) {
+        Respond.Error(error, res);
+    }
+});
+
 //user end 
 app.post('/register', async (req,res)=> {
     let username = req.body.username;
