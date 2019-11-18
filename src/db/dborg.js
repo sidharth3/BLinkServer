@@ -11,7 +11,7 @@ class DBOrgs {
 
     collection()
     {
-        return this.firestore.collection("ogranisers");
+        return this.firestore.collection("organisers");
     }
 
     async orgExists(org_username){
@@ -45,7 +45,7 @@ class DBOrgs {
      * Registers a new user, assuming username is not already taken
      * @throws
      * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     * @param {{username, first_name, last_name, email, password, organisation_name}} payload 
      */
     async createOrg(payload)
     {
@@ -59,7 +59,7 @@ class DBOrgs {
         {
             let hashedPassword = await this.hashedpassword(payload.password);
             userDoc.set({
-                org_username : payload.org_username,
+                org_username : payload.username,
                 first_name: payload.first_name,
                 last_name: payload.last_name,
                 email: payload.email,
@@ -82,10 +82,10 @@ class DBOrgs {
      * @returns {Promise<boolean>} successful log in or not
      * @throws 
      */
-    async login(org_username, password)
+    async login(username, password)
     {
         try {
-            let user = await this.collection().doc(org_username).get();
+            let user = await this.collection().doc(username).get();
             
             //user exists && verify hashed password
             if(user.exists)

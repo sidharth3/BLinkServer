@@ -17,7 +17,7 @@ module.exports = {
 
     EVENT_CREATED_SUCCESS:{
         status: "EVENT_CREATED_SUCCESS",
-        statusText: "Success"
+        statusText: "Success",
         message : "Event Created Successful"
     }    
 }

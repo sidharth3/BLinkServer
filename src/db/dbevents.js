@@ -48,9 +48,9 @@ class DBEvents {
         }   
     }
 
-    async creatEvent(payLoad)
+    async createEvent(payload)
     {
-        let eventIDDoc = this.collect().doc(payload.event_id);
+        let eventIDDoc = this.collection().doc(payload.event_id);
         let eventID = await eventIDDoc.get();
         if (eventID.exists){
             throw Errors.EVENTS.ERROR_EVENT_ID_TAKEN;
@@ -64,8 +64,9 @@ class DBEvents {
                 price : payload.price
             });
             return true;
-        }
-        return false;
+        }        
+
+        //TODO: append to event organisers created events
     }    
 }
 
