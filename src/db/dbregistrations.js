@@ -23,7 +23,7 @@ class DBRegistrations {
                 dateAttended: 0
             }
 
-            this.collection().doc(event_id).set(event_registration_data);
+            await this.collection().doc(event_id).set(event_registration_data);
         }
         else //if the event hasnt had any registrations yet
         {
@@ -36,7 +36,7 @@ class DBRegistrations {
                 }
             };
 
-            this.collection().doc(event_id).set(event_registration_data);
+            await this.collection().doc(event_id).set(event_registration_data);
         }
 
     }
@@ -55,7 +55,7 @@ class DBRegistrations {
                     status: true,
                     dateAttended: Date.now().toString(),
                 }
-                this.collection().doc(event_id).set(event_registration_data);
+                await this.collection().doc(event_id).set(event_registration_data);
             }
         }
         else //if the event hasnt had any registrations yet

@@ -3,6 +3,24 @@ const bcrypt = require('bcrypt');
 const config = require('../constants/config');
 const uuidv1 = require('uuid/v1');
 
+/*
+type User =
+{
+    username : string,
+    password : string,
+    email : string,
+    displayname : string,
+    position : string, 
+    company : string,
+    description : string,
+    facebook : string,
+    linkedin : string,
+    instagram : string,
+    face_encoding : string,
+    status: string //PENDING or ACTIVE
+}
+*/
+
 class DBUsers {
     constructor(firestore)
     {
@@ -12,6 +30,11 @@ class DBUsers {
     collection()
     {
         return this.firestore.collection("users");
+    }
+
+    NewUser()
+    {
+
     }
 
     async userExists(username){
@@ -35,6 +58,11 @@ class DBUsers {
         return users;        
     }    
 
+    /**
+     * 
+     * @param {*} username 
+     * @returns {Promise<User>} returns a user
+     */
     async getUser(username)
     {
         try {
@@ -57,8 +85,8 @@ class DBUsers {
     /**
      * Registers a new user, assuming username is not already taken
      * @throws
-     * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year}} payload 
+     * @returns {Promise<{username, displayname, email, description, company, position, instagram, linkedin,facebook, face_encoding,status}>} if successfully registered
+     * @param {{username, displayname, password, email}} payload 
      */
     async createUser(payload)
     {
@@ -70,24 +98,35 @@ class DBUsers {
         }
         else
         {
+            
+            //hash password
             let hashedPassword = await this.hashedpassword(payload.password);
-            userDoc.set({
+            let userData = {
                 username : payload.username,
-                first_name: payload.first_name,
-                last_name: payload.last_name,
-                email: payload.email,
-                password: hashedPassword,
-                birth_year: payload.birth_year,
-                face_encoding : [],
-                status: 'PENDING'                
-            });
+                password : hashedPassword,
+                displayname : payload.displayname,
+                email : payload.email,
+                description : "",
+                company : "",
+                position : "",                
+                instagram: "",
+                linkedin: "",
+                facebook: "",
+                face_encoding: "[]",
+                status: "PENDING"
+            };
+                                    
+            //update db
+            await userDoc.set(userData);            
 
-            return true;
+            //dont send password to user
+            userData.password = undefined;
+            return userData;
         }
-
-        return false;
+    
     }
 
+    
     async addFaceEncodingForUser(face_encoding_string, username)
     {
         let userDoc = this.collection().doc(username);
@@ -101,8 +140,39 @@ class DBUsers {
             let userData = user.data();        
             userData.status = 'ACTIVE'; //user only becomes active after uploading face
             userData.face_encoding = face_encoding_string;
-            userDoc.set(userData)            
-            return true;
+            await userDoc.set(userData)            ;
+            userData.password = undefined;
+            return userData;
+        }
+    }
+
+
+    /**
+     * 
+     * @param {{description, company, position, facebook, instagram, linkedin}} payload 
+     * @param {*} username 
+     * @returns {Promise<{username, displayname, email, description, company, position, instagram, linkedin, facebook, face_encoding,status}>}
+     */
+    async addMoreInfoForUser(payload,username)
+    {
+        let userDoc = this.collection().doc(username);
+        let user = await userDoc.get();
+        if(!user.exists)
+        {
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        else
+        {    
+            let userData = user.data();                    
+            userData.description = payload.description;
+            userData.company = payload.company;
+            userData.position = payload.position;
+            userData.facebook = payload.facebook;
+            userData.instagram = payload.instagram;
+            userData.linkedin = payload.linkedin;            
+            await userDoc.set(userData);            
+            userData.password = undefined;
+            return userData;
         }
     }
 
@@ -138,7 +208,7 @@ class DBUsers {
                 //so that retrieval is easy, connection sorted
                 connection.sort();
                 let id = uuidv1().toString();
-                connections_collection.doc(id).set({0: connection[0], 1: connection[1]});
+                await connections_collection.doc(id).set({0: connection[0], 1: connection[1]});
             }
         }                
     }
@@ -147,7 +217,7 @@ class DBUsers {
      * Verifies user credentials against database
      * @param {string} username 
      * @param {string} password 
-     * @returns {Promise<boolean>} successful log in or not
+     * @returns {Promise<User>} successful log in or not
      * @throws 
      */
     async login(username, password)
@@ -163,7 +233,8 @@ class DBUsers {
                 let validPassword = await bcrypt.compare(password, userData.password);
                 if(validPassword)
                 {
-                    return true;
+                    userData.password = undefined;
+                    return userData;
                 }
                 else
                 {

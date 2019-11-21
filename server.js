@@ -107,13 +107,11 @@ app.post('/loginOrg', async (req,res)=>{
 app.post('/register', async (req,res)=> {
     let username = req.body.username;
     let password = req.body.password;
-    let first_name = req.body.first_name;
-    let last_name = req.body.last_name;
-    let email = req.body.email;
-    let birth_year = req.body.birth_year;        
+    let displayname = req.body.displayname;    
+    let email = req.body.email;        
 
     try {
-        let payload = {username, first_name, last_name, email, password, birth_year};
+        let payload = {username, displayname, email, password};
         CheckRequiredFields(payload);        
 
         try {
@@ -127,10 +125,10 @@ app.post('/register', async (req,res)=> {
             }    
         }
         //create user account        
-        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year});
+        let user = await dbusers.createUser({username, displayname, email, password});
         
-        if (success) {            
-            Respond.Success(Responses.REGISTER_SUCCESS, res);
+        if (user !== undefined) {            
+            Respond.Success(user, res);
         }
         else {
             throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
@@ -141,6 +139,36 @@ app.post('/register', async (req,res)=> {
         Respond.Error(error, res);
     }    
 });
+
+app.post('/registerMoreInfo', async (req,res)=> {
+
+    let username = req.body.username;;
+    let company = req.body.company; //optional    
+    let position = req.body.position; //optional    
+    let description = req.body.description; //optional    
+    let facebook = req.body.facebook; //optional    
+    let instagram = req.body.instagram; //optional    
+    let linkedin = req.body.linkedin; //optional   
+    
+    try {
+        CheckRequiredFields({username, description});        
+        let payload = {company: company || "", position: position || "", description: description, facebook: facebook || "", instagram: instagram || "", linkedin: linkedin || ""};        
+        
+        //create user account        
+        let user = await dbusers.addMoreInfoForUser(payload, username);
+        
+        if (user !== undefined) {            
+            Respond.Success(user, res);
+        }
+        else {
+            throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
+        }
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }    
+})
 
 app.post('/registerOrg', async (req,res)=> {
     let username = req.body.username;
