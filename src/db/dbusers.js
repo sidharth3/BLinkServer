@@ -12,7 +12,7 @@ type User =
     displayname : string,
     position : string, 
     company : string,
-    description : string,
+    bio : string,
     facebook : string,
     linkedin : string,
     instagram : string,
@@ -85,11 +85,15 @@ class DBUsers {
     /**
      * Registers a new user, assuming username is not already taken
      * @throws
-     * @returns {Promise<{username, displayname, email, description, company, position, instagram, linkedin,facebook, face_encoding,status}>} if successfully registered
+     * @returns {Promise<{username, displayname, email, bio, company, position, instagram, linkedin,facebook, face_encoding,status}>} if successfully registered
      * @param {{username, displayname, password, email}} payload 
      */
     async createUser(payload)
     {
+        if(payload.username == "" || payload.password == "" || payload.displayname == "" || payload.email == "") {
+            throw Errors.REGISTRATION.ERROR_EMPTY_REGISTRATION_DETAILS;
+        }
+
         let userDoc = this.collection().doc(payload.username);
         let user = await userDoc.get();
         if(user.exists)
@@ -106,7 +110,7 @@ class DBUsers {
                 password : hashedPassword,
                 displayname : payload.displayname,
                 email : payload.email,
-                description : "",
+                bio : "",
                 company : "",
                 position : "",                
                 instagram: "",
@@ -149,9 +153,9 @@ class DBUsers {
 
     /**
      * 
-     * @param {{description, company, position, facebook, instagram, linkedin}} payload 
+     * @param {{bio, company, position, facebook, instagram, linkedin}} payload 
      * @param {*} username 
-     * @returns {Promise<{username, displayname, email, description, company, position, instagram, linkedin, facebook, face_encoding,status}>}
+     * @returns {Promise<{username, displayname, email, bio, company, position, instagram, linkedin, facebook, face_encoding,status}>}
      */
     async addMoreInfoForUser(payload,username)
     {
@@ -164,7 +168,7 @@ class DBUsers {
         else
         {    
             let userData = user.data();                    
-            userData.description = payload.description;
+            userData.bio = payload.bio;
             userData.company = payload.company;
             userData.position = payload.position;
             userData.facebook = payload.facebook;
@@ -223,6 +227,10 @@ class DBUsers {
     async login(username, password)
     {
         try {
+            if(username == "" || password == "") {
+                throw Errors.LOGIN.ERROR_EMPTY_LOGIN_DETAILS;
+            }
+
             let user = await this.collection().doc(username).get();
             
             //user exists && verify hashed password

@@ -71,10 +71,10 @@ app.post('/login', async (req,res)=>{
 
     try {
         CheckRequiredFields({username, password});        
-
-        let success = await dbusers.login(username, password);
-        if (success) {
-            Respond.Success(Responses.LOGIN_SUCCESS, res);
+        
+        let user = await dbusers.login(username, password);
+        if (user !== undefined) {            
+            Respond.Success(user, res);
         }
         else {
             throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
@@ -145,14 +145,14 @@ app.post('/registerMoreInfo', async (req,res)=> {
     let username = req.body.username;;
     let company = req.body.company; //optional    
     let position = req.body.position; //optional    
-    let description = req.body.description; //optional    
+    let bio = req.body.bio; //optional    
     let facebook = req.body.facebook; //optional    
     let instagram = req.body.instagram; //optional    
     let linkedin = req.body.linkedin; //optional   
     
     try {
-        CheckRequiredFields({username, description});        
-        let payload = {company: company || "", position: position || "", description: description, facebook: facebook || "", instagram: instagram || "", linkedin: linkedin || ""};        
+        CheckRequiredFields({username, bio});        
+        let payload = {company: company || "", position: position || "", bio: bio, facebook: facebook || "", instagram: instagram || "", linkedin: linkedin || ""};        
         
         //create user account        
         let user = await dbusers.addMoreInfoForUser(payload, username);
@@ -220,7 +220,7 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
         if(success)
         {            
             await dbface.appendFaceEncodingToLibrary(username, face_encoding);
-            //if created user successfully, move the image to profile pictures            
+            //if created user successfully, move the image to profile pictures  
             Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username)); 
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
@@ -389,9 +389,10 @@ app.get('/getEventImage/:event_id', (req, res) => {
 /**
  * Takes in an image, and connects users in the image
  */
-app.post('/connect', upload.single('selfie_image'), async (req,res)=>{
-    let username = req.body.username;
+app.post('/connect', upload.single('image_file'), async (req,res)=>{
     let selfie_image = req.file;
+    let username = req.body.username;
+    
 
     try {
         CheckRequiredFields({username, selfie_image});
@@ -448,5 +449,4 @@ function CheckRequiredFields(object)
         };
     }
 }
-
 

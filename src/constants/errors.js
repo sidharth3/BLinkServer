@@ -10,6 +10,11 @@ module.exports = {
             statusText : "Error",
             message : "This user does not exist"        
         },
+        ERROR_EMPTY_LOGIN_DETAILS : {
+            status: "ERROR_EMPTY_LOGIN_DETAILS",
+            statusText : "Error",
+            message : "Please put fill in the required fields"        
+        },
     },
     REGISTRATION : {
         ERROR_USERNAME_TAKEN : {
@@ -21,7 +26,12 @@ module.exports = {
             status: "ERROR_REGISTRATION_FAILED",
             statusText : "Error",
             message : "Registration Failed"        
-        }
+        },
+        ERROR_EMPTY_REGISTRATION_DETAILS : {
+            status: "ERROR_EMPTY_REGISTRATION_DETAILS",
+            statusText : "Error",
+            message : "Please put fill in the required fields"        
+        },
     },
     EVENTS: {
         ERROR_EVENTS_RETRIEVAL_FAILED : {
