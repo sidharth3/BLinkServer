@@ -50,7 +50,7 @@ class DBConnections {
      * 
      * @param {Array.<String>} usernames 
      */
-    async connectUsers(usernames)
+    async connectUsers(usernames, image_id)
     {
         // let connections = [];
         let connections_collection = this.collection();
@@ -80,7 +80,8 @@ class DBConnections {
                 let id = uuidv1().toString();
                 await connections_collection.doc(id).set({
                     usernames: connection,
-                    time: Date.now().toString()
+                    time: Date.now().toString(),
+                    image_id 
                 });
             }
         }                

@@ -3,6 +3,7 @@ const express = require('express');
 const config = require('./src/constants/config');
 const app = express();
 const bodyParse = require('body-parser');
+const uuid = require('uuid');
 //path
 const path = require('path');
 const fs = require('fs');
@@ -242,7 +243,7 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
     }
 })
 
-app.get('/getEvents', async (req,res)=> {
+app.post('/getEvents', async (req,res)=> {
 
     let username = req.body.username;
 
@@ -435,7 +436,6 @@ app.post('/getConnectionsSummary', async (req,res) => {
     }
 });
 
-
 app.get('/getProfileImage/:username', (req, res) => {
     var username = req.params.username;
 
@@ -470,6 +470,7 @@ app.get('/getEventImage/:event_id', (req, res) => {
         
     } catch (error) {
         console.log(error);
+        console.log(event_id);
         Respond.Error(error,res);
     }
 });
@@ -478,13 +479,13 @@ app.get('/getEventImage/:event_id', (req, res) => {
  * Takes in an image, and connects users in the image
  */
 app.post('/connect', upload.single('image_file'), async (req,res)=>{
-    let selfie_image = req.file;
+    let image_file = req.file;
     let username = req.body.username;
     
     try {
-        CheckRequiredFields({username, selfie_image});
+        CheckRequiredFields({username, image_file});
         let time = Date.now();
-        let usernames = await PythonScripts.get_face_usernames(selfie_image);        
+        let usernames = await PythonScripts.get_face_usernames(image_file);        
         let after = Date.now();
 
         if(usernames.indexOf(username) == -1)
@@ -498,17 +499,19 @@ app.post('/connect', upload.single('image_file'), async (req,res)=>{
         }        
         
         console.log(`Time taken to process connection: ${after - time}`);
-        console.log(usernames);
-        await dbconnections.connectUsers(usernames);
+        
+        let image_id = uuid.v1().toString();
+        await dbconnections.connectUsers(usernames, image_id);
+        Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(image_id)); 
         Respond.Success(usernames, res);        
     } catch (error) {
+        if(image_file !== undefined)
+        {
+            Files.DeleteFile(image_file.path); //remove images after processing
+        }
+        
         console.log(error);
         Respond.Error(error, res);
-    } finally {
-        if(selfie_image !== undefined)
-        {
-            Files.DeleteFile(selfie_image.path); //remove images after processing
-        }
     }
 });
 

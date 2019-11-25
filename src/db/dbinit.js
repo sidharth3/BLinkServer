@@ -1,5 +1,24 @@
 const uuid = require('uuid');
+const bcrypt = require('bcrypt');
+const config = require('../constants/config');
 
+ /**
+ * Hashes and salts password
+ * @param {string} password 
+ */
+const hashedpassword = (password) =>
+{
+    return new Promise((resolve,reject)=>{
+        bcrypt.hash(password, config.SALT_ROUNDS, (error,hash)=>{
+            if (error)
+            {
+                reject(error);
+            }
+
+            resolve(hash);
+        });
+    })
+}
 /* Prepare different collections and documents, there'll be 4 collections 
  #1 Users 
  #2 Event
@@ -20,29 +39,44 @@ class DBInit {
         this.initRegistration();
     }
 
-    initUsers() {
+    async initUsers() {
         console.log("Initializing Users...");
-
+        let password = await hashedpassword('12345');
         //Setting up Collection 1: Users, Document: Usernames, Field: User/Userid/Email/password/Events attended
         let colRef_users = this.firestore.collection('users');
-        let users_list = ["sean"];
-        for (let name of users_list) {
-            let docRef_users = colRef_users.doc(name);
-            let set_users = docRef_users.set({
-                username : name,
-                password: '12345',
-                displayname: name + 'lim',            
-                email: name + '@gmail.com',                                
-                face_encoding: '',
-                bio : `I am ${name}`,
-                position : 'CEO',
-                company : 'some company',
-                facebook : `facebook.com/${name}`,
-                instagram : `@${name}`,
-                linkedin : `linkedin.com/in/${name}`,
-                status : 'ACTIVE',
+        let users_list = [{
+            username : "seanmlim",
+            password: password,
+            displayname: "Sean Michael Lim",            
+            email:'seanmlim@gmail.com',                                
+            face_encoding: '',
+            bio : `Hi come for RockAFall`,
+            position : 'CEO',
+            company : 'Veggie Wraps Inc.',
+            facebook : `facebook.com/seanmlim`,
+            instagram : `@bgourd`,
+            linkedin : `linkedin.com/in/seanmlim`,
+            status : 'ACTIVE',
 
-            });
+        }, {
+            username : "mooselliot",
+            password: password,
+            displayname: "Elliot Koh",            
+            email: 'kyzelliot@gmail.com',                                
+            face_encoding: '',
+            bio : `I love to code`,
+            position : 'Software Developer',
+            company : 'MooseDev',
+            facebook : `facebook.com/mooselliot`,
+            instagram : `@mooselliot`,
+            linkedin : `linkedin.com/in/mooselliot`,
+            status : 'ACTIVE',
+
+        }];
+
+        for (let user of users_list) {
+            let docRef_users = colRef_users.doc(user.username);
+            docRef_users.set(user);
         }
     }
 
@@ -51,16 +85,57 @@ class DBInit {
 
         //Setting up Collection 2 : Events, Document : UUIDs, Field: Event Name, Date, Organiser UUID, Price
         let colRef_events = this.firestore.collection('events');
-        let events_list = ["some_event_id"];
-        for (let i of events_list) {
-            let docRef_events = colRef_events.doc(i);
-            let set_events = docRef_events.set({
-                event_id: i,
-                event_name: '',
-                date: '', //in DDMMYY
-                org_username: '',
-                price: ''
-            })
+        let events_list = [{
+            event_id: "event_a",
+            event_name: 'Industry Night 2019',
+            date: '25/12/19', //in DDMMYY
+            org_username: 'SUTD',
+            description: 'YO this event is gon be LIT',
+            address: '8 Somapah Road',
+            time: '7pm - 10pm',
+            price: 'FREE'
+        }, {
+            event_id: "event_b",
+            event_name: 'Interview Workshop',
+            date: '23/12/19', //in DDMMYY
+            org_username: 'Google',
+            description: 'YO this event is gon be LIT',
+            address: '8 Somapah Road',
+            time: '6pm - 9pm',
+            price: 'FREE'
+        }, {
+            event_id: "event_c",
+            event_name: 'Recruitment Talk',
+            date: '07/01/20', //in DDMMYY
+            org_username: 'MasterCard',
+            description: 'YO this event is gon be LIT',
+            address: '8 Somapah Road',
+            time: '10am - 2pm',
+            price: 'FREE'
+        }, {
+            event_id: "event_d",
+            event_name: 'Information Session',
+            date: '28/12/19', //in DDMMYY
+            org_username: 'Facebook',
+            description: 'YO this event is gon be LIT',
+            address: '8 Somapah Road',
+            time: '2pm - 3pm',
+            price: 'FREE'
+        }, {
+            event_id: "event_e",
+            event_name: 'Interview Workshop',
+            date: '21/01/20', //in DDMMYY
+            org_username: 'SUTD',
+            description: 'YO this event is gon be LIT',
+            address: '8 Somapah Road',
+            time: '7pm - 10pm',
+            price: 'FREE'
+        }];
+
+
+        for (let event of events_list) {
+            let docRef_events = colRef_events.doc(event.event_id);
+            docRef_events.set(event);
         }   
     }
 
@@ -89,19 +164,37 @@ class DBInit {
 
         //Setting up collection 4: registation, Document: event UUIDs, Field : USername : { status : , date: } ID/Email/PAssword/ORganisation/Events organised
         let colRef_registration = this.firestore.collection('registrations');
-        let event_id = "some_event_id"
-        let registration_list = ["sean"];
-        for (let i of registration_list) {
+        
+        let registration_list = [{
+            attended : false,
+            dateAttended : "0",
+            dateRegistered : Date.now().toString(),
+            username: "seanmlim",
+            event_id: "event_a"
+        }, {
+            attended : false,
+            dateAttended : "0",
+            dateRegistered : Date.now().toString(),
+            username: "mooselliot",
+            event_id: "event_b"
+        }, {
+            attended : true,
+            dateAttended : "0",
+            dateRegistered : Date.now().toString(),
+            username: "mooselliot",
+            event_id: "event_c"
+        },{
+            attended : false,
+            dateAttended : "0",
+            dateRegistered : Date.now().toString(),
+            username: "seanmlim",
+            event_id: "event_d"
+        }];
 
+        for (let registration of registration_list) {
             let registration_id = uuid.v1().toString();
             let docRef_registration = colRef_registration.doc(registration_id);
-            let set_registration = docRef_registration.set({
-                attended : false,
-                dateAttended : "0",
-                dateRegistered : Date.now().toString(),
-                username: i,
-                event_id: event_id
-            })
+            docRef_registration.set(registration);
         }
     }
 
@@ -110,14 +203,18 @@ class DBInit {
 
         //Setting up collection 5: Connection. Document: Random number. Field: User A: USer B
         let colRef_connections = this.firestore.collection('connections');
-        let connections = [["sean", "elliot"]];        
-        let connection_id = uuid.v1();
-        let docRef_connections = colRef_connections.doc(connection_id);        
+        let connections = [{
+            connection_id: "e3bf7a70-0fb7-11ea-b8c1-831b43a9a941",
+            usernames: ["seanmlim", "mooselliot"],                
+            time: Date.now().toString(),
+            image_id: ""
+        }];        
+
         for(let connection of connections) {
-            let set_connections = docRef_connections.set({
-                usernames: connection,                
-                time: Date.now().toString()
-            });
+            // let connection_id = uuid.v1().toString();
+            // console.log(connection_id);
+            let docRef_connections = colRef_connections.doc(connection.connection_id);        
+            docRef_connections.set(connection);
         }
     }
 }
