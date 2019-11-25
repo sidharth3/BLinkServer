@@ -415,7 +415,7 @@ app.post('/getConnectionsSummary', async (req,res) => {
                 userData.password = undefined;
                 userData.face_encoding = undefined;
 
-                const sevenDays = 60*60*24*7;
+                const sevenDays = 60*60*24*7*1000;                
                 if((Date.now() - parseInt(connection.time)) < sevenDays){
                     recent.push(userData);                
                 }
