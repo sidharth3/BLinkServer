@@ -180,43 +180,7 @@ class DBUsers {
         }
     }
 
-    /**
-     * 
-     * @param {Array.<String>} usernames 
-     */
-    async connectUsers(usernames)
-    {
-        // let connections = [];
-        let connections_collection = this.firestore.collection('connections');
-        
-        for(let i=0; i<usernames.length;i++)
-        {   
-            let username = usernames[i];
-            //image is not taken 
-            if(username == "UNKNOWN")        
-            {
-                continue;
-            }
-            
-            let userDoc = this.collection().doc(username);
-            let user = await userDoc.get();        
-            
-            if(!user.exists)
-            {
-                throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
-            }
-            
-            for (let j = i + 1; j < usernames.length; j++) {
-                // connections.push([usernames[i], usernames[j]]);
-                let connection = [usernames[i], usernames[j]];                
-                //so that retrieval is easy, connection sorted
-                connection.sort();
-                let id = uuidv1().toString();
-                await connections_collection.doc(id).set({0: connection[0], 1: connection[1]});
-            }
-        }                
-    }
-
+   
     /**
      * Verifies user credentials against database
      * @param {string} username 

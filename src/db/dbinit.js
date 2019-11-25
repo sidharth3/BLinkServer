@@ -110,14 +110,14 @@ class DBInit {
 
         //Setting up collection 5: Connection. Document: Random number. Field: User A: USer B
         let colRef_connections = this.firestore.collection('connections');
-        let connections_num = ["0"];
-        let userA_list = ["viet"]
-        let userB_list = ["jie lin"]
-        for (let i = 0; i < connections_num.length; i++) {
-            let docRef_connections = colRef_connections.doc(connections_num[i]);
+        let connections = [["sean", "elliot"]];        
+        let connection_id = uuid.v1();
+        let docRef_connections = colRef_connections.doc(connection_id);        
+        for(let connection of connections) {
             let set_connections = docRef_connections.set({
-                0: [userA_list[i], userB_list[i]]
-            })
+                usernames: connection,                
+                time: Date.now().toString()
+            });
         }
     }
 }

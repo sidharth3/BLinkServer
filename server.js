@@ -10,6 +10,7 @@ const fs = require('fs');
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
 const DBRegistrations = require('./src/db/dbregistrations');
+const DBConnections = require('./src/db/dbconnections');
 const DBFace = require('./src/db/dbface');
 const DBInit = require('./src/db/dbinit');
 const DBOrgs = require('./src/db/dborg');
@@ -52,6 +53,7 @@ const firestore = firebase.firestore();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 const dbregistrations = new DBRegistrations(firestore);
+const dbconnections = new DBConnections(firestore);
 const dborgs = new DBOrgs(firestore);
 
 const dbface = new DBFace(firestore);
@@ -377,6 +379,54 @@ app.get('/getProfile', async (req,res)=> {
     }
 });
 
+app.get('/getConnectionsSummary', async (req,res) => {
+    let username = req.body.username;
+
+    try {
+        CheckRequiredFields({username});        
+
+        //1: Get the recent connection users
+        //2 Get the suggested Users
+
+        let connections = await dbconnections.getRecentConnectionsForUser(username);
+
+        let recent = [];
+        let explore = [];
+        let allusers = await dbusers.getUsers();
+
+        for(let user of allusers) {
+            //if this user is a connection
+            let connection = connections.find((x => x.username == user.username));
+            if (connection == undefined) { 
+                user.password = undefined;
+                user.face_encoding = undefined;
+                explore.push(user);                
+            }            
+        }
+        
+        for(let connection of connections) {
+            let userData = allusers.find(x => {                                
+                return x.username == connection.username;
+            });
+            if (userData != undefined) {                
+                userData.password = undefined;
+                userData.face_encoding = undefined;
+                recent.push(userData);                
+            }
+        }
+
+
+        Respond.Success({
+            recent,            
+            explore
+        }, res);        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+
 app.get('/getProfileImage/:username', (req, res) => {
     var username = req.params.username;
 
@@ -422,7 +472,6 @@ app.post('/connect', upload.single('image_file'), async (req,res)=>{
     let selfie_image = req.file;
     let username = req.body.username;
     
-
     try {
         CheckRequiredFields({username, selfie_image});
         let time = Date.now();
@@ -441,7 +490,7 @@ app.post('/connect', upload.single('image_file'), async (req,res)=>{
         
         console.log(`Time taken to process connection: ${after - time}`);
 
-        await dbusers.connectUsers(usernames);
+        await dbconnections.connectUsers(usernames);
         Respond.Success(usernames, res);        
     } catch (error) {
         console.log(error);
