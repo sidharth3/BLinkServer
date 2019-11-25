@@ -391,7 +391,7 @@ app.get('/getConnectionsSummary', async (req,res) => {
         let connections = await dbconnections.getRecentConnectionsForUser(username);
 
         let recent = [];
-        let explore = [];
+        let recommended = [];
         let allusers = await dbusers.getUsers();
 
         for(let user of allusers) {
@@ -400,7 +400,7 @@ app.get('/getConnectionsSummary', async (req,res) => {
             if (connection == undefined) { 
                 user.password = undefined;
                 user.face_encoding = undefined;
-                explore.push(user);                
+                recommended.push(user);                
             }            
         }
         
@@ -418,7 +418,7 @@ app.get('/getConnectionsSummary', async (req,res) => {
 
         Respond.Success({
             recent,            
-            explore
+            recommended
         }, res);        
     } catch (error) {
         console.log(error);
