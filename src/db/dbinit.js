@@ -1,3 +1,5 @@
+const uuid = require('uuid');
+
 /* Prepare different collections and documents, there'll be 4 collections 
  #1 Users 
  #2 Event
@@ -24,18 +26,22 @@ class DBInit {
         //Setting up Collection 1: Users, Document: Usernames, Field: User/Userid/Email/password/Events attended
         let colRef_users = this.firestore.collection('users');
         let users_list = ["sean"];
-        for (let i of users_list) {
-            let docRef_users = colRef_users.doc(i);
+        for (let name of users_list) {
+            let docRef_users = colRef_users.doc(name);
             let set_users = docRef_users.set({
-                username : i,
-                first_name: '',
-                last_name: '',
-                email: '',
-                password: '',
-                birth_year: '',
-                image_file: '',
+                username : name,
+                password: '12345',
+                displayname: name + 'lim',            
+                email: name + '@gmail.com',                                
                 face_encoding: '',
-                attended_events:[]
+                bio : `I am ${name}`,
+                position : 'CEO',
+                company : 'some company',
+                facebook : `facebook.com/${name}`,
+                instagram : `@${name}`,
+                linkedin : `linkedin.com/in/${name}`,
+                status : 'ACTIVE',
+
             });
         }
     }
@@ -45,7 +51,7 @@ class DBInit {
 
         //Setting up Collection 2 : Events, Document : UUIDs, Field: Event Name, Date, Organiser UUID, Price
         let colRef_events = this.firestore.collection('events');
-        let events_list = ["123"];
+        let events_list = ["some_event_id"];
         for (let i of events_list) {
             let docRef_events = colRef_events.doc(i);
             let set_events = docRef_events.set({
@@ -82,15 +88,19 @@ class DBInit {
         console.log("Initializing Registration...");
 
         //Setting up collection 4: registation, Document: event UUIDs, Field : USername : { status : , date: } ID/Email/PAssword/ORganisation/Events organised
-        let colRef_registration = this.firestore.collection('registration');
+        let colRef_registration = this.firestore.collection('registrations');
+        let event_id = "some_event_id"
         let registration_list = ["sean"];
         for (let i of registration_list) {
-            let docRef_registration = colRef_registration.doc(i);
+
+            let registration_id = uuid.v1().toString();
+            let docRef_registration = colRef_registration.doc(registration_id);
             let set_registration = docRef_registration.set({
-                [i] : {
-                    status : false,
-                    date : ""
-                }
+                attended : false,
+                dateAttended : "0",
+                dateRegistered : Date.now().toString(),
+                username: i,
+                event_id: event_id
             })
         }
     }

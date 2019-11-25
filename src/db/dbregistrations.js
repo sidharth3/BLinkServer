@@ -6,7 +6,7 @@ class DBRegistrations {
     }
 
     collection() {
-        return this.firestore.collection("registration");
+        return this.firestore.collection("registrations");
     }
 
     async registerUserForEvent(username, event_id) {
@@ -18,7 +18,7 @@ class DBRegistrations {
 
             event_registration_data[username] = {
                 username: username,
-                status: false,
+                attended: false,
                 dateRegistered: Date.now().toString(),
                 dateAttended: 0
             }
@@ -30,7 +30,7 @@ class DBRegistrations {
             let event_registration_data = {
                 [username]: {
                     username: username,
-                    status: false,
+                    attended: false,
                     dateRegistered: Date.now().toString(),
                     dateAttended: 0
                 }
@@ -52,7 +52,7 @@ class DBRegistrations {
             else {
                 event_registration_data[username] = {
                     ...event_registration_data[username],
-                    status: true,
+                    attended: true,
                     dateAttended: Date.now().toString(),
                 }
                 await this.collection().doc(event_id).set(event_registration_data);
@@ -78,7 +78,51 @@ class DBRegistrations {
         {
             throw Errors.EVENTS.ERROR_EVENT_DOESNT_EXIST;
         }
+    }    
+
+    async getUserRegisteredEventIds(username) { 
+        let output = {            
+            attended_event_ids: [],
+            unattended_event_ids: [],            
+        }
+
+        let snapshot = await this.collection().where("username", "==", username).get();
+        snapshot.forEach(function(doc) {            
+            let record = doc.data();
+
+            if(record.attended == false){
+                output.unattended_event_ids.push(record.event_id);
+            }
+            else {                
+                output.attended_event_ids.push(record.event_id);
+            }
+        });
+        
+        return output;
     }
+
+    async userEventRelationship(username, event_id) {
+        let event_registrations = await this.collection().doc(event_id).get();
+
+        if (event_registrations.exists) {
+            let event_registration_data = event_registrations.data();
+            let isRegisteredData = event_registration_data[username];
+
+            if(isRegisteredData === undefined) {
+                return 0; //not registered
+            }
+            else if (isRegisteredData[status] == false) {
+                return 1; //registered but not attended yet
+            }
+            else {
+                return 2;
+            }
+        }
+        else
+        {
+            throw Errors.EVENTS.ERROR_EVENT_DOESNT_EXIST;
+        }
+    }   
 }
 
 module.exports = DBRegistrations;

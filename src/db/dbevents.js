@@ -48,6 +48,20 @@ class DBEvents {
         }   
     }
 
+    async getEventDataFromIds(event_ids) {
+        
+        let output = [];        
+        console.log(event_ids);
+        let snapshot = await this.collection().where("event_id", "in", event_ids).get();        
+        
+        snapshot.forEach(function(doc) {            
+            let record = doc.data();
+            output.push(record);
+        });
+
+        return output;
+    }
+
     async createEvent(payload)
     {
         let eventIDDoc = this.collection().doc(payload.event_id);

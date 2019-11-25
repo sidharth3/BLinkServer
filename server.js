@@ -242,9 +242,38 @@ app.post('/registerFace', upload.single('image_file'), async (req,res)=>{
 
 app.get('/getEvents', async (req,res)=> {
 
-    try {
+    let username = req.body.username;
+
+    try {        
+        //if no username, all events are explore            
         let events = await dbevents.getEvents();
-        Respond.Success(events, res);        
+        if(!username) {
+            Respond.Success(events,res);
+            return;
+        }
+
+        let eventsForUser = await dbregistrations.getUserRegisteredEventIds(username);
+        let upcoming_ids = eventsForUser.unattended_event_ids;
+        let past_ids = eventsForUser.attended_event_ids;
+
+        let output = {
+            upcoming : [],
+            past : [],
+            explore : []
+        }
+        for(let event of events) {
+            if (past_ids.indexOf(event.event_id) != -1 ) {
+                output.past.push(event);
+            }
+            else if (upcoming_ids.indexOf(event.event_id) != -1 ){                
+                output.upcoming.push(event);
+            }
+            else {                
+                output.explore.push(event);
+            }
+        }
+        
+        Respond.Success(output, res);        
     } catch (error) {
         console.log(error);
         Respond.Error(error, res);
