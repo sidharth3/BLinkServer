@@ -366,7 +366,7 @@ app.post('/createEvent', async (req,res)=> {
     }
 });
 
-app.get('/getProfile', async (req,res)=> {
+app.post('/getProfile', async (req,res)=> {
     let username = req.body.username;
 
     try {
@@ -379,7 +379,7 @@ app.get('/getProfile', async (req,res)=> {
     }
 });
 
-app.get('/getConnectionsSummary', async (req,res) => {
+app.post('/getConnectionsSummary', async (req,res) => {
     let username = req.body.username;
 
     try {
@@ -392,12 +392,14 @@ app.get('/getConnectionsSummary', async (req,res) => {
 
         let recent = [];
         let recommended = [];
+        let all = [];
         let allusers = await dbusers.getUsers();
 
         for(let user of allusers) {
             //if this user is a connection
             let connection = connections.find((x => x.username == user.username));
-            if (connection == undefined) { 
+            //if cannot find, recommend this user
+            if (connection == undefined && user.username != username) { 
                 user.password = undefined;
                 user.face_encoding = undefined;
                 recommended.push(user);                
@@ -408,17 +410,24 @@ app.get('/getConnectionsSummary', async (req,res) => {
             let userData = allusers.find(x => {                                
                 return x.username == connection.username;
             });
-            if (userData != undefined) {                
+            if (userData != undefined && userData.username != username) {                
                 userData.password = undefined;
                 userData.face_encoding = undefined;
-                recent.push(userData);                
+
+                const sevenDays = 60*60*24*7;
+                if((Date.now() - parseInt(connection.time)) < sevenDays){
+                    recent.push(userData);                
+                }
+
+                all.push(userData);
             }
         }
 
 
         Respond.Success({
             recent,            
-            recommended
+            recommended,
+            all
         }, res);        
     } catch (error) {
         console.log(error);
@@ -489,7 +498,7 @@ app.post('/connect', upload.single('image_file'), async (req,res)=>{
         }        
         
         console.log(`Time taken to process connection: ${after - time}`);
-
+        console.log(usernames);
         await dbconnections.connectUsers(usernames);
         Respond.Success(usernames, res);        
     } catch (error) {

@@ -62,9 +62,9 @@ class DBConnections {
             if(username == "UNKNOWN")        
             {
                 continue;
-            }
+            }            
             
-            let userDoc = this.collection().doc(username);
+            let userDoc = this.firestore.collection("users").doc(username);
             let user = await userDoc.get();        
             
             if(!user.exists)
