@@ -3,6 +3,24 @@ const bcrypt = require('bcrypt');
 const config = require('../constants/config');
 const uuidv1 = require('uuid/v1');
 
+/*
+type User =
+{
+    username : string,
+    password : string,
+    email : string,
+    displayname : string,
+    position : string, 
+    company : string,
+    bio : string,
+    facebook : string,
+    linkedin : string,
+    instagram : string,
+    face_encoding : string,
+    status: string //PENDING or ACTIVE
+}
+*/
+
 class DBUsers {
     constructor(firestore)
     {
@@ -12,6 +30,11 @@ class DBUsers {
     collection()
     {
         return this.firestore.collection("users");
+    }
+
+    NewUser()
+    {
+
     }
 
     async userExists(username){
@@ -35,6 +58,11 @@ class DBUsers {
         return users;        
     }    
 
+    /**
+     * 
+     * @param {*} username 
+     * @returns {Promise<User>} returns a user
+     */
     async getUser(username)
     {
         try {
@@ -57,11 +85,15 @@ class DBUsers {
     /**
      * Registers a new user, assuming username is not already taken
      * @throws
-     * @returns {Promise<boolean>} if successfully registered
-     * @param {{username, first_name, last_name, email, password, birth_year, face_encoding_string}} payload 
+     * @returns {Promise<{username, displayname, email, bio, company, position, instagram, linkedin,facebook, face_encoding,status}>} if successfully registered
+     * @param {{username, displayname, password, email}} payload 
      */
     async createUser(payload)
     {
+        if(payload.username == "" || payload.password == "" || payload.displayname == "" || payload.email == "") {
+            throw Errors.REGISTRATION.ERROR_EMPTY_REGISTRATION_DETAILS;
+        }
+
         let userDoc = this.collection().doc(payload.username);
         let user = await userDoc.get();
         if(user.exists)
@@ -70,69 +102,99 @@ class DBUsers {
         }
         else
         {
+            
+            //hash password
             let hashedPassword = await this.hashedpassword(payload.password);
-            this.collection().doc(payload.username);
-            userDoc.set({
+            let userData = {
                 username : payload.username,
-                first_name: payload.first_name,
-                last_name: payload.last_name,
-                email: payload.email,
-                password: hashedPassword,
-                birth_year: payload.birth_year,
-                face_encoding: payload.face_encoding_string
-            });
+                password : hashedPassword,
+                displayname : payload.displayname,
+                email : payload.email,
+                bio : "",
+                company : "",
+                position : "",                
+                instagram: "",
+                linkedin: "",
+                facebook: "",
+                face_encoding: "[]",
+                status: "PENDING"
+            };
+                                    
+            //update db
+            await userDoc.set(userData);            
 
-            return true;
+            //dont send password to user
+            userData.password = undefined;
+            return userData;
+        }
+    
+    }
+
+    
+    async addFaceEncodingForUser(face_encoding_string, username)
+    {
+        let userDoc = this.collection().doc(username);
+        let user = await userDoc.get();
+        if(!user.exists)
+        {
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        else
+        {    
+            let userData = user.data();        
+            userData.status = 'ACTIVE'; //user only becomes active after uploading face
+            userData.face_encoding = face_encoding_string;
+            await userDoc.set(userData)            ;
+            userData.password = undefined;
+            return userData;
         }
     }
 
+
     /**
      * 
-     * @param {Array.<String>} usernames 
+     * @param {{bio, company, position, facebook, instagram, linkedin}} payload 
+     * @param {*} username 
+     * @returns {Promise<{username, displayname, email, bio, company, position, instagram, linkedin, facebook, face_encoding,status}>}
      */
-    async connectUsers(usernames)
+    async addMoreInfoForUser(payload,username)
     {
-        // let connections = [];
-        let connections_collection = this.firestore.collection('connections');
-        
-        for(let i=0; i<usernames.length;i++)
-        {   
-            let username = usernames[i];
-            //image is not taken 
-            if(username == "UNKNOWN")        
-            {
-                continue;
-            }
-            
-            let userDoc = this.collection().doc(username);
-            let user = await userDoc.get();        
-            
-            if(!user.exists)
-            {
-                throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
-            }
-            
-            for (let j = i + 1; j < usernames.length; j++) {
-                // connections.push([usernames[i], usernames[j]]);
-                let connection = [usernames[i], usernames[j]];                
-                //so that retrieval is easy, connection sorted
-                connection.sort();
-                let id = uuidv1().toString();
-                connections_collection.doc(id).set({0: connection[0], 1: connection[1]});
-            }
-        }                
+        let userDoc = this.collection().doc(username);
+        let user = await userDoc.get();
+        if(!user.exists)
+        {
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        else
+        {    
+            let userData = user.data();                    
+            userData.bio = payload.bio;
+            userData.company = payload.company;
+            userData.position = payload.position;
+            userData.facebook = payload.facebook;
+            userData.instagram = payload.instagram;
+            userData.linkedin = payload.linkedin;            
+            await userDoc.set(userData);            
+            userData.password = undefined;
+            return userData;
+        }
     }
 
+   
     /**
      * Verifies user credentials against database
      * @param {string} username 
      * @param {string} password 
-     * @returns {Promise<boolean>} successful log in or not
+     * @returns {Promise<User>} successful log in or not
      * @throws 
      */
     async login(username, password)
     {
         try {
+            if(username == "" || password == "") {
+                throw Errors.LOGIN.ERROR_EMPTY_LOGIN_DETAILS;
+            }
+
             let user = await this.collection().doc(username).get();
             
             //user exists && verify hashed password
@@ -143,7 +205,8 @@ class DBUsers {
                 let validPassword = await bcrypt.compare(password, userData.password);
                 if(validPassword)
                 {
-                    return true;
+                    userData.password = undefined;
+                    return userData;
                 }
                 else
                 {

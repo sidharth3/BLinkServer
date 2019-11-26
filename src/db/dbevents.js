@@ -11,6 +11,11 @@ class DBEvents {
         return this.firestore.collection("events");
     }
 
+    async eventExists(event_id){
+        var event = await this.collection().doc(event_id).get();
+        return event.exists;
+    }
+
     async getEvents()
     {
         var events = [];
@@ -43,9 +48,39 @@ class DBEvents {
         }   
     }
 
-    async creatEvent()
-    {
+    async getEventDataFromIds(event_ids) {
+        
+        let output = [];        
+        console.log(event_ids);
+        let snapshot = await this.collection().where("event_id", "in", event_ids).get();        
+        
+        snapshot.forEach(function(doc) {            
+            let record = doc.data();
+            output.push(record);
+        });
 
+        return output;
+    }
+
+    async createEvent(payload)
+    {
+        let eventIDDoc = this.collection().doc(payload.event_id);
+        let eventID = await eventIDDoc.get();
+        if (eventID.exists){
+            throw Errors.EVENTS.ERROR_EVENT_ID_TAKEN;
+        }
+        else{
+            eventIDDoc.set({
+                event_id : payload.event_id,
+                event_name : payload.event_name,
+                date : payload.date,
+                org_username : payload.username,
+                price : payload.price
+            });
+            return true;
+        }        
+
+        //TODO: append to event organisers created events
     }    
 }
 

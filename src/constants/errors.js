@@ -10,6 +10,11 @@ module.exports = {
             statusText : "Error",
             message : "This user does not exist"        
         },
+        ERROR_EMPTY_LOGIN_DETAILS : {
+            status: "ERROR_EMPTY_LOGIN_DETAILS",
+            statusText : "Error",
+            message : "Please put fill in the required fields"        
+        },
     },
     REGISTRATION : {
         ERROR_USERNAME_TAKEN : {
@@ -21,7 +26,12 @@ module.exports = {
             status: "ERROR_REGISTRATION_FAILED",
             statusText : "Error",
             message : "Registration Failed"        
-        }
+        },
+        ERROR_EMPTY_REGISTRATION_DETAILS : {
+            status: "ERROR_EMPTY_REGISTRATION_DETAILS",
+            statusText : "Error",
+            message : "Please put fill in the required fields"        
+        },
     },
     EVENTS: {
         ERROR_EVENTS_RETRIEVAL_FAILED : {
@@ -43,6 +53,11 @@ module.exports = {
             status: "ERROR_EVENT_DOESNT_EXIST",
             statusText : "Error",
             message : "Event does not exist"                     
+        },
+        ERROR_EVENT_ID_TAKEN : {
+            status: "ERROR_EVENT_ID_TAKEN",
+            statusText : "Error",
+            message : "Event ID has already been taken"                     
         }
     },
     USERS: {
@@ -67,6 +82,11 @@ module.exports = {
             status: "ERROR_USER_NOT_IN_IMAGE",
             statusText : "Error",
             message : "The connection cannot be made because the requesting user is not in the image"            
+        },
+        ERROR_COULD_NOT_ASSIGN_FACE :{
+            status: "ERROR_COULD_NOT_ASSIGN_FACE",
+            statusText : "Error",
+            message : "The image could not be assigned to this user. Please try again later"            
         }
     },
     PYTHON : {
@@ -74,6 +94,11 @@ module.exports = {
             status: "ERROR_FACE_ENCODING_FAILED",
             statusText : "Error",
             message : "Face encoding failed"        
+        },
+        MALFORMED_FACE_IMAGE : {            
+            status: "MALFORMED_FACE_IMAGE",
+            statusText : "Error",
+            message : "The image did not present a valid face"        
         }
     },
     RESOURCE : {

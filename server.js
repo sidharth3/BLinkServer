@@ -3,6 +3,7 @@ const express = require('express');
 const config = require('./src/constants/config');
 const app = express();
 const bodyParse = require('body-parser');
+const uuid = require('uuid');
 //path
 const path = require('path');
 const fs = require('fs');
@@ -10,8 +11,10 @@ const fs = require('fs');
 const DBUsers = require('./src/db/dbusers');
 const DBEvents = require('./src/db/dbevents');
 const DBRegistrations = require('./src/db/dbregistrations');
+const DBConnections = require('./src/db/dbconnections');
 const DBFace = require('./src/db/dbface');
 const DBInit = require('./src/db/dbinit');
+const DBOrgs = require('./src/db/dborg');
 //Helpers
 const Respond = require('./src/helpers/Respond');
 const Files = require('./src/helpers/Files');
@@ -51,6 +54,8 @@ const firestore = firebase.firestore();
 const dbusers = new DBUsers(firestore);
 const dbevents = new DBEvents(firestore);
 const dbregistrations = new DBRegistrations(firestore);
+const dbconnections = new DBConnections(firestore);
+const dborgs = new DBOrgs(firestore);
 
 const dbface = new DBFace(firestore);
 dbface.loadFaceEncodingLibrary();
@@ -69,8 +74,27 @@ app.post('/login', async (req,res)=>{
 
     try {
         CheckRequiredFields({username, password});        
+        
+        let user = await dbusers.login(username, password);
+        if (user !== undefined) {            
+            Respond.Success(user, res);
+        }
+        else {
+            throw Errors.LOGIN.ERROR_WRONG_PASSWORD;
+        }
+    } catch (error) {
+        Respond.Error(error, res);
+    }
+});
 
-        let success = await dbusers.login(username, password);
+app.post('/loginOrg', async (req,res)=>{
+    let org_username = req.body.org_username;
+    let password = req.body.password;
+
+    try {
+        CheckRequiredFields({org_username, password});        
+
+        let success = await dborgs.login(org_username, password);
         if (success) {
             Respond.Success(Responses.LOGIN_SUCCESS, res);
         }
@@ -82,17 +106,15 @@ app.post('/login', async (req,res)=>{
     }
 });
 
-app.post('/register', upload.single('faceimage'), async (req,res)=> {
+//user end 
+app.post('/register', async (req,res)=> {
     let username = req.body.username;
     let password = req.body.password;
-    let first_name = req.body.first_name;
-    let last_name = req.body.last_name;
-    let email = req.body.email;
-    let birth_year = req.body.birth_year;
-    let image_file = req.file;
+    let displayname = req.body.displayname;    
+    let email = req.body.email;        
 
     try {
-        let payload = {username, first_name, last_name, email, password, birth_year, image_file};
+        let payload = {username, displayname, email, password};
         CheckRequiredFields(payload);        
 
         try {
@@ -105,17 +127,78 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
                 throw error;
             }    
         }
+        //create user account        
+        let user = await dbusers.createUser({username, displayname, email, password});
         
-        let face_encoding = await PythonScripts.face_encoding(image_file);        
+        if (user !== undefined) {            
+            Respond.Success(user, res);
+        }
+        else {
+            throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
+        }
         
-        //create user account
-        let face_encoding_string = JSON.stringify(face_encoding);
-        let success = await dbusers.createUser({username, first_name, last_name, email, password, birth_year, face_encoding_string});
-        await dbface.appendFaceEncodingToLibrary(username, face_encoding);
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }    
+});
 
-        if (success) {
-            //if created user successfully, move the image to profile pictures            
-            Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username));
+app.post('/registerMoreInfo', async (req,res)=> {
+
+    let username = req.body.username;;
+    let company = req.body.company; //optional    
+    let position = req.body.position; //optional    
+    let bio = req.body.bio; //optional    
+    let facebook = req.body.facebook; //optional    
+    let instagram = req.body.instagram; //optional    
+    let linkedin = req.body.linkedin; //optional   
+    
+    try {
+        CheckRequiredFields({username, bio});        
+        let payload = {company: company || "", position: position || "", bio: bio, facebook: facebook || "", instagram: instagram || "", linkedin: linkedin || ""};        
+        
+        //create user account        
+        let user = await dbusers.addMoreInfoForUser(payload, username);
+        
+        if (user !== undefined) {            
+            Respond.Success(user, res);
+        }
+        else {
+            throw Errors.REGISTRATION.ERROR_REGISTRATION_FAILED;
+        }
+        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }    
+})
+
+app.post('/registerOrg', async (req,res)=> {
+    let username = req.body.username;
+    let password = req.body.password;
+    let first_name = req.body.first_name;
+    let last_name = req.body.last_name;
+    let email = req.body.email;
+    let organisation_name = req.body.organisation_name;        
+
+    try {
+        let payload = {username, first_name, last_name, email, password, organisation_name};
+        CheckRequiredFields(payload);        
+
+        try {
+            await dborgs.getOrg(username);
+            //if this does not fail, the user exists
+            throw Errors.REGISTRATION.ERROR_USERNAME_TAKEN;
+        } catch (error) {
+            if(error != Errors.USERS.ERROR_USER_DOESNT_EXIST)
+            {
+                throw error;
+            }    
+        }
+        //create user account        
+        let success = await dborgs.createOrg({username, first_name, last_name, email, password, organisation_name});
+        
+        if (success) {            
             Respond.Success(Responses.REGISTER_SUCCESS, res);
         }
         else {
@@ -123,17 +206,77 @@ app.post('/register', upload.single('faceimage'), async (req,res)=> {
         }
         
     } catch (error) {
-        Files.DeleteFile(image_file.path);
         console.log(error);
         Respond.Error(error, res);
     }    
 });
 
-app.get('/getEvents', async (req,res)=> {
+app.post('/registerFace', upload.single('image_file'), async (req,res)=>{    
+    let image_file = req.file;
+    let username = req.body.username;
 
     try {
+        CheckRequiredFields({username, image_file});     
+        let face_encoding = await PythonScripts.face_encoding(image_file);      
+        let face_encoding_string = JSON.stringify(face_encoding);
+        let success = await dbusers.addFaceEncodingForUser(face_encoding_string, username);
+        if(success)
+        {            
+            await dbface.appendFaceEncodingToLibrary(username, face_encoding);
+            //if created user successfully, move the image to profile pictures  
+            Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(username)); 
+            Respond.Success(Responses.REGISTER_SUCCESS, res);
+        }
+        else
+        {
+            throw Errors.FACE.ERROR_COULD_NOT_ASSIGN_FACE;
+        }
+        
+    } catch (error) {
+        if(image_file)
+        {
+            Files.DeleteFile(image_file.path);
+        }
+
+        console.log(error);
+        Respond.Error(error, res);
+    }
+})
+
+app.post('/getEvents', async (req,res)=> {
+
+    let username = req.body.username;
+
+    try {        
+        //if no username, all events are explore            
         let events = await dbevents.getEvents();
-        Respond.Success(events, res);        
+        if(!username) {
+            Respond.Success(events,res);
+            return;
+        }
+
+        let eventsForUser = await dbregistrations.getUserRegisteredEventIds(username);
+        let upcoming_ids = eventsForUser.unattended_event_ids;
+        let past_ids = eventsForUser.attended_event_ids;
+
+        let output = {
+            upcoming : [],
+            past : [],
+            explore : []
+        }
+        for(let event of events) {
+            if (past_ids.indexOf(event.event_id) != -1 ) {
+                output.past.push(event);
+            }
+            else if (upcoming_ids.indexOf(event.event_id) != -1 ){                
+                output.upcoming.push(event);
+            }
+            else {                
+                output.explore.push(event);
+            }
+        }
+        
+        Respond.Success(output, res);        
     } catch (error) {
         console.log(error);
         Respond.Error(error, res);
@@ -200,13 +343,93 @@ app.post('/registrationsForEvent', async (req,res)=> {
     }
 });
 
-app.get('/getProfile', async (req,res)=> {
+
+// not checking for org_username because only organiser can use this page
+app.post('/createEvent', async (req,res)=> {
+    let username = req.body.username; 
+    let event_id = req.body.event_id;
+    let event_name = req.body.event_name;
+    let date = req.body.date;
+    let price = req.body.price;
+
+    try {
+        let payload = {org_username: username, event_id,event_name,date,price};
+        CheckRequiredFields(payload);        
+        let exists = await dborgs.orgExists(username);
+        if(!exists){
+            throw Errors.USERS.ERROR_USER_DOESNT_EXIST;
+        }
+        await dbevents.createEvent({username, event_id,event_name,date,price});
+        Respond.Success(Responses.REGISTER_SUCCESS, res);
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+app.post('/getProfile', async (req,res)=> {
     let username = req.body.username;
 
     try {
         CheckRequiredFields({username});        
         let userData = await dbusers.getUser(username);
         Respond.Success(userData, res);        
+    } catch (error) {
+        console.log(error);
+        Respond.Error(error, res);
+    }
+});
+
+app.post('/getConnectionsSummary', async (req,res) => {
+    let username = req.body.username;
+
+    try {
+        CheckRequiredFields({username});        
+
+        //1: Get the recent connection users
+        //2 Get the suggested Users
+
+        let connections = await dbconnections.getRecentConnectionsForUser(username);
+
+        let recent = [];
+        let recommended = [];
+        let all = [];
+        let allusers = await dbusers.getUsers();
+
+        for(let user of allusers) {
+            //if this user is a connection
+            let connection = connections.find((x => x.username == user.username));
+            //if cannot find, recommend this user
+            if (connection == undefined && user.username != username) { 
+                user.password = undefined;
+                user.face_encoding = undefined;
+                recommended.push(user);                
+            }            
+        }
+        
+        for(let connection of connections) {
+            let userData = allusers.find(x => {                                
+                return x.username == connection.username;
+            });
+            if (userData != undefined && userData.username != username) {                
+                userData.password = undefined;
+                userData.face_encoding = undefined;
+
+                const sevenDays = 60*60*24*7*1000;                
+                if((Date.now() - parseInt(connection.time)) < sevenDays){
+                    recent.push(userData);                
+                }
+
+                all.push(userData);
+            }
+        }
+
+
+        Respond.Success({
+            recent,            
+            recommended,
+            all
+        }, res);        
     } catch (error) {
         console.log(error);
         Respond.Error(error, res);
@@ -247,6 +470,7 @@ app.get('/getEventImage/:event_id', (req, res) => {
         
     } catch (error) {
         console.log(error);
+        console.log(event_id);
         Respond.Error(error,res);
     }
 });
@@ -254,14 +478,14 @@ app.get('/getEventImage/:event_id', (req, res) => {
 /**
  * Takes in an image, and connects users in the image
  */
-app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
+app.post('/connect', upload.single('image_file'), async (req,res)=>{
+    let image_file = req.file;
     let username = req.body.username;
-    let selfie_image = req.file;
-
+    
     try {
-        CheckRequiredFields({username, selfie_image});
+        CheckRequiredFields({username, image_file});
         let time = Date.now();
-        let usernames = await PythonScripts.get_face_usernames(selfie_image);        
+        let usernames = await PythonScripts.get_face_usernames(image_file);        
         let after = Date.now();
 
         if(usernames.indexOf(username) == -1)
@@ -275,14 +499,19 @@ app.post('/connect', upload.single('selfieimage'), async (req,res)=>{
         }        
         
         console.log(`Time taken to process connection: ${after - time}`);
-
-        await dbusers.connectUsers(usernames);
+        
+        let image_id = uuid.v1().toString();
+        await dbconnections.connectUsers(usernames, image_id);
+        Files.MoveImage(image_file.path,Paths.PROFILE_IMAGE_PATH(image_id)); 
         Respond.Success(usernames, res);        
     } catch (error) {
+        if(image_file !== undefined)
+        {
+            Files.DeleteFile(image_file.path); //remove images after processing
+        }
+        
         console.log(error);
         Respond.Error(error, res);
-    } finally {
-        Files.DeleteFile(selfie_image.path); //remove images after processing
     }
 });
 
@@ -310,5 +539,4 @@ function CheckRequiredFields(object)
         };
     }
 }
-
 
